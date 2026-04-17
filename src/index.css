@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+body {
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* Hilangkan scrollbar */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
