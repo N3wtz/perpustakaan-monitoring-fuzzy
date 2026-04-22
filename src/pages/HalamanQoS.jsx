@@ -4,11 +4,27 @@ import KartuUmum from "../components/KartuUmum";
 import { KONFIG_APP, TATA_LETAK_RUANG } from "../fuzzy/aturanFuzzy";
 
 // ======================================================
+// KONFIGURASI
+// ======================================================
+const MAX_DELAY_MS = 10000; // delay > 10 detik diabaikan
+const MIN_VALID_SEQ = 1;
+
+// ======================================================
 // HELPER FORMAT
 // ======================================================
+function parseAngka(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function formatMs(value) {
   if (!Number.isFinite(value)) return "-";
   return `${value.toFixed(0)} ms`;
+}
+
+function formatDetik(valueMs) {
+  if (!Number.isFinite(valueMs)) return "-";
+  return `${(valueMs / 1000).toFixed(2)} detik`;
 }
 
 function formatPercent(value) {
@@ -22,45 +38,53 @@ function formatWaktuDetik(totalDetik) {
   return `${String(menit).padStart(2, "0")}:${String(detik).padStart(2, "0")}`;
 }
 
-function parseAngka(value, fallback = 0) {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
+function rataRata(arr) {
+  if (!arr.length) return 0;
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
+
+function median(arr) {
+  if (!arr.length) return 0;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+
+  return sorted[mid];
 }
 
 // ======================================================
-// HELPER KATEGORI QOS
+// KATEGORI QOS SESUAI RULE KAMU
 // ======================================================
-function kategoriDelay(delay) {
-  if (!Number.isFinite(delay)) return "-";
-  if (delay < 150) return "Sangat Bagus";
-  if (delay <= 300) return "Bagus";
-  if (delay <= 450) return "Sedang";
-  return "Buruk";
-}
+function kategoriDelay(delayMs) {
+  if (!Number.isFinite(delayMs)) return "-";
 
-function kategoriJitter(jitter) {
-  if (!Number.isFinite(jitter)) return "-";
-  if (jitter < 30) return "Sangat Bagus";
-  if (jitter <= 75) return "Bagus";
-  if (jitter <= 125) return "Sedang";
-  return "Buruk";
+  const detik = delayMs / 1000;
+
+  if (detik < 2) return "Sangat Baik";
+  if (detik <= 4) return "Baik";
+  return "Kurang";
 }
 
 function kategoriPacketLoss(loss) {
   if (!Number.isFinite(loss)) return "-";
-  if (loss === 0) return "Sangat Bagus";
-  if (loss <= 3) return "Bagus";
-  if (loss <= 15) return "Sedang";
+
+  if (loss === 0) return "Sangat Baik";
+  if (loss <= 1) return "Baik";
+  if (loss <= 3) return "Cukup";
   return "Buruk";
 }
 
 function kelasKategori(kategori) {
   switch (kategori) {
-    case "Sangat Bagus":
+    case "Sangat Baik":
       return "text-green-600";
-    case "Bagus":
+    case "Baik":
       return "text-blue-600";
-    case "Sedang":
+    case "Cukup":
+    case "Kurang":
       return "text-amber-500";
     case "Buruk":
       return "text-red-600";
@@ -69,8 +93,16 @@ function kelasKategori(kategori) {
   }
 }
 
+function statusSinyalRssi(rssi) {
+  if (!Number.isFinite(rssi)) return "-";
+  if (rssi >= -60) return "Sangat Baik";
+  if (rssi >= -70) return "Baik";
+  if (rssi >= -80) return "Sedang";
+  return "Lemah";
+}
+
 // ======================================================
-// UI KOMPONEN
+// UI
 // ======================================================
 function HeaderUser() {
   return (
@@ -157,36 +189,39 @@ function KartuKontrol({
       </div>
 
       <div className="mt-4 text-sm text-slate-500">
-        QoS hanya dihitung dari paket yang masuk selama sesi pengukuran aktif.
-        Jadi data lama sebelum tombol mulai ditekan tidak ikut dihitung.
+        QoS hanya dihitung selama sesi pengukuran aktif. Paket lama, paket
+        duplikat, dan delay yang tidak masuk akal tidak ikut dihitung.
       </div>
     </KartuUmum>
   );
 }
 
-function BarisMetrik({ label, realtime, rataRata, kategori }) {
+function BarisMetrik({ label, realtime, rataRata, medianValue, kategori }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
       <div className="text-sm text-slate-500">{label}</div>
 
-      <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-3">
+      <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-4">
         <div>
           <div className="text-xs text-slate-400">Realtime</div>
-          <div className="text-2xl font-semibold text-slate-900">
-            {realtime}
-          </div>
+          <div className="text-xl font-semibold text-slate-900">{realtime}</div>
         </div>
 
         <div>
           <div className="text-xs text-slate-400">Rata-rata</div>
-          <div className="text-2xl font-semibold text-slate-900">
-            {rataRata}
+          <div className="text-xl font-semibold text-slate-900">{rataRata}</div>
+        </div>
+
+        <div>
+          <div className="text-xs text-slate-400">Median</div>
+          <div className="text-xl font-semibold text-slate-900">
+            {medianValue}
           </div>
         </div>
 
         <div>
           <div className="text-xs text-slate-400">Kategori</div>
-          <div className={`text-xl font-bold ${kelasKategori(kategori)}`}>
+          <div className={`text-lg font-bold ${kelasKategori(kategori)}`}>
             {kategori}
           </div>
         </div>
@@ -195,59 +230,76 @@ function BarisMetrik({ label, realtime, rataRata, kategori }) {
   );
 }
 
-function KartuQosArea({ label, metrics, statusSesi }) {
-  const delayRealtime = formatMs(metrics?.latestDelayMs);
-  const delayRataRata = formatMs(metrics?.avgDelayMs);
-
-  const jitterRealtime = formatMs(metrics?.latestJitterMs);
-  const jitterRataRata = formatMs(metrics?.avgJitterMs);
-
-  const lossRealtime = formatPercent(metrics?.packetLossPct);
-  const lossRataRata = formatPercent(metrics?.packetLossPct);
-
+function KartuQosArea({ label, metrics, statusSesi, wifiRssi }) {
   const kategoriDelayText = kategoriDelay(metrics?.avgDelayMs);
-  const kategoriJitterText = kategoriJitter(metrics?.avgJitterMs);
   const kategoriLossText = kategoriPacketLoss(metrics?.packetLossPct);
 
   return (
     <KartuUmum className="p-5">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="text-2xl font-bold text-slate-900">{label}</div>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <div className="text-2xl font-bold text-slate-900">{label}</div>
+          <div className="mt-1 text-sm text-slate-500">
+            RSSI: {Number.isFinite(wifiRssi) ? `${wifiRssi} dBm` : "-"} •{" "}
+            {statusSinyalRssi(wifiRssi)}
+          </div>
+        </div>
 
         <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-          Paket diterima: {metrics?.receivedCount || 0}
+          Paket valid: {metrics?.receivedCount || 0}
         </div>
       </div>
 
       <div className="space-y-3">
         <BarisMetrik
-          label="Delay"
-          realtime={delayRealtime}
-          rataRata={delayRataRata}
+          label="Delay End-to-End"
+          realtime={formatDetik(metrics?.latestDelayMs)}
+          rataRata={formatDetik(metrics?.avgDelayMs)}
+          medianValue={formatDetik(metrics?.medianDelayMs)}
           kategori={kategoriDelayText}
         />
 
         <BarisMetrik
-          label="Jitter"
-          realtime={jitterRealtime}
-          rataRata={jitterRataRata}
-          kategori={kategoriJitterText}
-        />
-
-        <BarisMetrik
           label="Packet Loss"
-          realtime={lossRealtime}
-          rataRata={lossRataRata}
+          realtime={formatPercent(metrics?.packetLossPct)}
+          rataRata={formatPercent(metrics?.packetLossPct)}
+          medianValue={metrics?.lostCount ?? 0}
           kategori={kategoriLossText}
         />
       </div>
 
+      <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-slate-500 md:grid-cols-4">
+        <div>
+          Paket valid:{" "}
+          <span className="font-semibold text-slate-700">
+            {metrics?.receivedCount || 0}
+          </span>
+        </div>
+        <div>
+          Paket hilang:{" "}
+          <span className="font-semibold text-slate-700">
+            {metrics?.lostCount || 0}
+          </span>
+        </div>
+        <div>
+          Paket diabaikan:{" "}
+          <span className="font-semibold text-slate-700">
+            {metrics?.ignoredCount || 0}
+          </span>
+        </div>
+        <div>
+          Seq terakhir:{" "}
+          <span className="font-semibold text-slate-700">
+            {metrics?.lastSeq || 0}
+          </span>
+        </div>
+      </div>
+
       <div className="mt-4 text-sm text-slate-500">
         {statusSesi === "idle" && "Belum ada sesi pengukuran."}
-        {statusSesi === "running" &&
-          "Data sedang dikumpulkan dari paket yang masuk."}
+        {statusSesi === "running" && "Sesi pengukuran sedang berjalan."}
         {statusSesi === "finished" &&
-          "Hasil sesi pengukuran siap digunakan untuk evaluasi."}
+          "Hasil sesi siap digunakan untuk evaluasi TA."}
       </div>
     </KartuUmum>
   );
@@ -290,7 +342,6 @@ export default function HalamanQoS({ rooms }) {
     setStatusSesi("running");
   }
 
-  // countdown sesi
   useEffect(() => {
     if (statusSesi !== "running" || !endsAtMs) return;
 
@@ -308,7 +359,6 @@ export default function HalamanQoS({ rooms }) {
     return () => clearInterval(timer);
   }, [statusSesi, endsAtMs]);
 
-  // hitung QoS hanya selama sesi aktif
   useEffect(() => {
     if (statusSesi !== "running" || !startedAtMs) return;
 
@@ -317,46 +367,63 @@ export default function HalamanQoS({ rooms }) {
       const seq = parseAngka(qos?.seq, 0);
       const sentAtMs = parseAngka(qos?.sent_at_ms, 0);
 
-      if (!seq || !sentAtMs) return;
-      if (sentAtMs < startedAtMs) return; // data lama sebelum sesi dimulai tidak dihitung
+      if (seq < MIN_VALID_SEQ || !sentAtMs) return;
+      if (sentAtMs < startedAtMs) return;
 
       const prev = trackerRef.current[roomId];
 
-      // seq yang sama jangan dihitung dua kali
+      // duplikat
       if (prev?.lastSeq === seq) return;
 
       const nowMs = Date.now();
-      const delayMs = Math.max(0, nowMs - sentAtMs);
-      const jitterNow = prev ? Math.abs(delayMs - prev.lastDelayMs) : 0;
+      const delayMs = nowMs - sentAtMs;
+
+      // delay tidak valid / terlalu besar
+      if (!Number.isFinite(delayMs) || delayMs < 0 || delayMs > MAX_DELAY_MS) {
+        const nextIgnored = {
+          ...(prev || {}),
+          ignoredCount: (prev?.ignoredCount || 0) + 1,
+          lastSeq: seq,
+        };
+
+        trackerRef.current[roomId] = nextIgnored;
+
+        setMetricsByRoom((prevState) => ({
+          ...prevState,
+          [roomId]: {
+            ...prevState[roomId],
+            ignoredCount: nextIgnored.ignoredCount,
+            lastSeq: nextIgnored.lastSeq,
+          },
+        }));
+        return;
+      }
+
       const lostNow =
         prev && seq > prev.lastSeq + 1 ? seq - prev.lastSeq - 1 : 0;
 
+      const delaySamples = [...(prev?.delaySamples || []), delayMs];
+
       const receivedCount = (prev?.receivedCount || 0) + 1;
       const lostCount = (prev?.lostCount || 0) + lostNow;
+      const ignoredCount = prev?.ignoredCount || 0;
 
-      const delaySum = (prev?.delaySum || 0) + delayMs;
-      const jitterSum = (prev?.jitterSum || 0) + jitterNow;
-      const jitterCount = prev ? (prev?.jitterCount || 0) + 1 : 0;
-
-      const avgDelayMs = delaySum / receivedCount;
-      const avgJitterMs = jitterCount > 0 ? jitterSum / jitterCount : 0;
+      const avgDelayMs = rataRata(delaySamples);
+      const medianDelayMs = median(delaySamples);
 
       const totalPaket = receivedCount + lostCount;
       const packetLossPct = totalPaket > 0 ? (lostCount / totalPaket) * 100 : 0;
 
       const nextState = {
         lastSeq: seq,
-        lastDelayMs: delayMs,
         receivedCount,
         lostCount,
-        delaySum,
-        jitterSum,
-        jitterCount,
+        ignoredCount,
 
         latestDelayMs: delayMs,
-        latestJitterMs: jitterNow,
+        delaySamples,
         avgDelayMs,
-        avgJitterMs,
+        medianDelayMs,
         packetLossPct,
       };
 
@@ -389,6 +456,7 @@ export default function HalamanQoS({ rooms }) {
             label={ruang.label}
             metrics={metricsByRoom?.[ruang.id] || {}}
             statusSesi={statusSesi}
+            wifiRssi={rooms?.[ruang.id]?.latest?.wifi_rssi}
           />
         ))}
       </div>
