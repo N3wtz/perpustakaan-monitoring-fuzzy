@@ -10,7 +10,11 @@ export function formatTanggalJam(date) {
   const jam = String(d.getHours()).padStart(2, "0");
   const menit = String(d.getMinutes()).padStart(2, "0");
   const detik = String(d.getSeconds()).padStart(2, "0");
-  return { tanggal: `${hari}/${bulan}`, jam: `${jam}:${menit}:${detik}` };
+
+  return {
+    tanggal: `${hari}/${bulan}`,
+    jam: `${jam}:${menit}:${detik}`,
+  };
 }
 
 export function ambilToneStatus(status) {
@@ -46,14 +50,14 @@ export function kelasToneStatus(tone) {
 export function ambilAngkaAsap(record = {}) {
   if (record.asap_ppm !== undefined) return angkaAman(record.asap_ppm);
   if (record.asap_metric !== undefined) return angkaAman(record.asap_metric);
-  if (record.asap_flag !== undefined)
+
+  if (record.asap_flag !== undefined) {
     return angkaAman(record.asap_flag) === 1 ? 10 : 0;
+  }
+
   return 0;
 }
 
-// ======================================================
-// QOS BARU: SATU OBJECT QOS UMUM DARI ESP
-// ======================================================
 function normalisasiQos(data = {}) {
   return {
     seq: angkaAman(data.seq),
@@ -93,33 +97,86 @@ export function normalisasiRiwayat(objekRiwayat = {}) {
     .sort((a, b) => a.timestamp - b.timestamp);
 }
 
-// helper lain tetap sama
-export function filterRiwayatByPeriode(riwayat, periode) {
-  if (!riwayat.length) return [];
+function formatInputDate(date = new Date()) {
+  const tahun = date.getFullYear();
+  const bulan = String(date.getMonth() + 1).padStart(2, "0");
+  const hari = String(date.getDate()).padStart(2, "0");
+  return `${tahun}-${bulan}-${hari}`;
+}
 
-  const referensi = riwayat[riwayat.length - 1];
-  const sekarang = new Date((referensi.timestamp || 0) * 1000 || Date.now());
+function formatInputMonth(date = new Date()) {
+  const tahun = date.getFullYear();
+  const bulan = String(date.getMonth() + 1).padStart(2, "0");
+  return `${tahun}-${bulan}`;
+}
+
+export function buatFilterDefault() {
+  const hariIni = new Date();
+
+  const tujuhHariLalu = new Date(hariIni);
+  tujuhHariLalu.setDate(hariIni.getDate() - 6);
+
+  return {
+    tanggal: formatInputDate(hariIni),
+    tanggalMulai: formatInputDate(tujuhHariLalu),
+    tanggalSelesai: formatInputDate(hariIni),
+    bulan: formatInputMonth(hariIni),
+  };
+}
+
+function awalHari(tanggal) {
+  const d = new Date(`${tanggal}T00:00:00`);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function akhirHari(tanggal) {
+  const d = new Date(`${tanggal}T23:59:59`);
+  d.setHours(23, 59, 59, 999);
+  return d.getTime();
+}
+
+export function filterRiwayatByPeriode(riwayat, periode, filterTanggal = {}) {
+  if (!riwayat?.length) return [];
 
   if (periode === "hari") {
+    const tanggal = filterTanggal.tanggal || formatInputDate(new Date());
+    const awal = awalHari(tanggal);
+    const akhir = akhirHari(tanggal);
+
     return riwayat.filter((item) => {
-      const d = new Date(item.timestamp * 1000);
-      return d.toDateString() === sekarang.toDateString();
+      const waktu = angkaAman(item.timestamp) * 1000;
+      return waktu >= awal && waktu <= akhir;
     });
   }
 
-  if (periode === "minggu") {
-    const batas = new Date(sekarang);
-    batas.setDate(sekarang.getDate() - 6);
-    batas.setHours(0, 0, 0, 0);
-    return riwayat.filter((item) => item.timestamp * 1000 >= batas.getTime());
+  if (periode === "kustom") {
+    const mulai = filterTanggal.tanggalMulai || formatInputDate(new Date());
+    const selesai = filterTanggal.tanggalSelesai || formatInputDate(new Date());
+
+    const awal = awalHari(mulai);
+    const akhir = akhirHari(selesai);
+
+    return riwayat.filter((item) => {
+      const waktu = angkaAman(item.timestamp) * 1000;
+      return waktu >= awal && waktu <= akhir;
+    });
   }
 
-  const awalBulan = new Date(sekarang.getFullYear(), sekarang.getMonth(), 1);
-  return riwayat.filter((item) => item.timestamp * 1000 >= awalBulan.getTime());
+  const bulanDipilih = filterTanggal.bulan || formatInputMonth(new Date());
+  const [tahun, bulan] = bulanDipilih.split("-").map(Number);
+
+  const awalBulan = new Date(tahun, bulan - 1, 1, 0, 0, 0, 0).getTime();
+  const akhirBulan = new Date(tahun, bulan, 0, 23, 59, 59, 999).getTime();
+
+  return riwayat.filter((item) => {
+    const waktu = angkaAman(item.timestamp) * 1000;
+    return waktu >= awalBulan && waktu <= akhirBulan;
+  });
 }
 
 export function kelompokkanGrafik(riwayat, field, periode) {
-  if (!riwayat.length) return [];
+  if (!riwayat?.length) return [];
 
   if (periode === "hari") {
     return riwayat.map((item) => ({
@@ -153,20 +210,21 @@ export function kelompokkanGrafik(riwayat, field, periode) {
   return Array.from(map.values())
     .sort((a, b) => a.tanggal - b.tanggal)
     .map((item) => ({
-      label:
-        periode === "minggu"
-          ? item.tanggal.toLocaleDateString("id-ID", { weekday: "short" })
-          : item.tanggal.toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "2-digit",
-            }),
+      label: item.tanggal.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
       value: item.total / item.jumlah,
     }));
 }
 
 export function hitungStatistik(dataGrafik) {
-  if (!dataGrafik.length) {
-    return { rataRata: 0, tertinggi: 0, terendah: 0 };
+  if (!dataGrafik?.length) {
+    return {
+      rataRata: 0,
+      tertinggi: 0,
+      terendah: 0,
+    };
   }
 
   const nilai = dataGrafik.map((item) => angkaAman(item.value));

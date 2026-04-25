@@ -19,63 +19,70 @@ function noise(kecil = 1) {
 
 // ======================================================
 // GENERATOR DATA 1 TAHUN DETAIL
+// 1 Januari 2026 - 31 Desember 2026
 // Interval 15 menit
 // ======================================================
 function generate1YearData(base) {
   const hasil = {};
-  const start = new Date("2025-01-01T00:00:00");
-  const jumlahHari = 365;
-  const intervalMenit = 15;
-  const dataPerHari = 24 * (60 / intervalMenit);
 
+  const start = new Date("2026-01-01T00:00:00");
+  const end = new Date("2026-12-31T23:59:59");
+
+  const intervalMenit = 15;
   let id = 0;
 
-  for (let day = 0; day < jumlahHari; day++) {
-    for (let i = 0; i < dataPerHari; i++) {
-      const date = new Date(start);
-      date.setDate(start.getDate() + day);
-      date.setMinutes(i * intervalMenit);
+  for (
+    let date = new Date(start);
+    date <= end;
+    date.setMinutes(date.getMinutes() + intervalMenit)
+  ) {
+    const currentDate = new Date(date);
 
-      const hour = date.getHours();
-      const minute = date.getMinutes();
-      const waktuHarian = (hour * 60 + minute) / 1440;
+    const hour = currentDate.getHours();
+    const minute = currentDate.getMinutes();
 
-      const jamAktif = hour >= 8 && hour <= 17;
+    const awalTahun = new Date("2026-01-01T00:00:00");
+    const selisihHari = Math.floor(
+      (currentDate.getTime() - awalTahun.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
-      const suhu =
-        base.suhu +
-        Math.sin(waktuHarian * Math.PI * 2 - 1.2) * 1.2 +
-        Math.sin((day / 365) * Math.PI * 2) * 1.0 +
-        noise(0.4);
+    const waktuHarian = (hour * 60 + minute) / 1440;
+    const jamAktif = hour >= 8 && hour <= 17;
 
-      const kelembapan =
-        base.kelembapan +
-        Math.cos(waktuHarian * Math.PI * 2) * 4 +
-        Math.sin((day / 365) * Math.PI * 2) * 5 +
-        noise(1.5);
+    const suhu =
+      base.suhu +
+      Math.sin(waktuHarian * Math.PI * 2 - 1.2) * 1.2 +
+      Math.sin((selisihHari / 365) * Math.PI * 2) * 1.0 +
+      noise(0.4);
 
-      const suara =
-        base.suara +
-        (jamAktif ? 8 : 2) +
-        (hour >= 10 && hour <= 14 ? 3 : 0) +
-        noise(2.5);
+    const kelembapan =
+      base.kelembapan +
+      Math.cos(waktuHarian * Math.PI * 2) * 4 +
+      Math.sin((selisihHari / 365) * Math.PI * 2) * 5 +
+      noise(1.5);
 
-      const asapSpike = Math.random() > 0.995 ? 10 + Math.random() * 8 : 0;
-      const coSpike = Math.random() > 0.992 ? 4 + Math.random() * 5 : 0;
+    const suara =
+      base.suara +
+      (jamAktif ? 8 : 2) +
+      (hour >= 10 && hour <= 14 ? 3 : 0) +
+      noise(2.5);
 
-      const asap = base.asap + asapSpike + noise(0.5);
-      const co = base.co + coSpike + noise(0.4);
+    const asapSpike = Math.random() > 0.995 ? 10 + Math.random() * 8 : 0;
+    const coSpike = Math.random() > 0.992 ? 4 + Math.random() * 5 : 0;
 
-      hasil[`id_${id++}`] = {
-        suhu: Number(clamp(suhu, 18, 32).toFixed(1)),
-        kelembapan: Number(clamp(kelembapan, 30, 80).toFixed(1)),
-        suara_db: Number(clamp(suara, 30, 75).toFixed(1)),
-        asap_metric: Number(clamp(asap, 0, 25).toFixed(1)),
-        ppm_co: Number(clamp(co, 0, 18).toFixed(1)),
-        timestamp: Math.floor(date.getTime() / 1000),
-        waktu_text: formatWaktuText(date),
-      };
-    }
+    const asap = base.asap + asapSpike + noise(0.5);
+    const co = base.co + coSpike + noise(0.4);
+
+    hasil[`id_${id++}`] = {
+      suhu: Number(clamp(suhu, 18, 32).toFixed(1)),
+      kelembapan: Number(clamp(kelembapan, 30, 80).toFixed(1)),
+      suara_db: Number(clamp(suara, 30, 75).toFixed(1)),
+      asap_metric: Number(clamp(asap, 0, 25).toFixed(1)),
+      asap_flag: asap >= 10 ? 1 : 0,
+      ppm_co: Number(clamp(co, 0, 18).toFixed(1)),
+      timestamp: Math.floor(currentDate.getTime() / 1000),
+      waktu_text: formatWaktuText(currentDate),
+    };
   }
 
   return hasil;

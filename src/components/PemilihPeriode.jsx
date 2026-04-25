@@ -3,8 +3,8 @@ import { ChevronDown } from "lucide-react";
 
 const OPSI = [
   { value: "hari", label: "Hari" },
-  { value: "minggu", label: "Minggu" },
   { value: "bulan", label: "Bulan" },
+  { value: "kustom", label: "Kustom" },
 ];
 
 export default function PemilihPeriode({ value, onChange }) {
