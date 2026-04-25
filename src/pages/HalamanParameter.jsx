@@ -72,7 +72,7 @@ export default function HalamanParameter({
           {meta?.label || "Parameter"}
         </h1>
 
-        <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow-sm">
+        <div className="flex items-center gap-3 rounded-full bg-transparent px-4 py-2 opacity-0 pointer-events-none">
           <div className="h-12 w-12 rounded-full bg-slate-200" />
 
           <div>

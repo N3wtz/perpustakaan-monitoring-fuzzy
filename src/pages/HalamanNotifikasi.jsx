@@ -10,8 +10,8 @@ function HeaderUser() {
   return (
     <div className="mb-5 flex items-center justify-between gap-4">
       <h1 className="text-4xl font-bold tracking-tight">Notifikasi</h1>
-
-      <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow-sm">
+      <div className="flex items-center gap-3 rounded-full bg-transparent px-4 py-2 opacity-0 pointer-events-none">
+        {" "}
         <div className="h-12 w-12 rounded-full bg-slate-200" />
         <div>
           <div className="text-lg font-semibold">Perpustakaan</div>
