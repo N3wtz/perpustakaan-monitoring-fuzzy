@@ -1,7 +1,7 @@
 export const KONFIG_APP = {
   namaAplikasi: "Perpustakaan Udayana",
   namaAdmin: "Admin",
-  gunakanDataDummy: false,
+  gunakanDataDummy: true,
   refreshJamMs: 1000,
 };
 

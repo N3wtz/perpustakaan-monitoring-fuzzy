@@ -9,167 +9,132 @@ function formatWaktuText(date) {
   return `${tahun}-${bulan}-${hari} ${jam}:${menit}:${detik}`;
 }
 
-function buatRiwayat(baseTime, dataArray) {
-  return Object.fromEntries(
-    dataArray.map((item, index) => {
-      const date = new Date(baseTime);
-      date.setMinutes(date.getMinutes() + index * 5);
-
-      return [
-        `id_${index + 1}`,
-        {
-          suhu: item.suhu,
-          kelembapan: item.kelembapan,
-          suara_db: item.suara_db,
-          asap_metric: item.asap_metric,
-          ppm_co: item.ppm_co,
-          timestamp: Math.floor(date.getTime() / 1000),
-          waktu_text: formatWaktuText(date),
-        },
-      ];
-    }),
-  );
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
 }
 
-const waktuAwal = new Date("2026-05-16T08:00:00");
+function noise(kecil = 1) {
+  return (Math.random() - 0.5) * kecil;
+}
 
 // ======================================================
-// AREA 1
-// Fokus masalah: ASAP
-// 3 data terakhir buruk -> harus bisa trigger alert/telegram
+// GENERATOR DATA 1 TAHUN DETAIL
+// Interval 15 menit
 // ======================================================
-const dataArea1 = [
-  { suhu: 24.1, kelembapan: 45, suara_db: 40, asap_metric: 2, ppm_co: 4.0 },
-  { suhu: 24.2, kelembapan: 46, suara_db: 41, asap_metric: 2, ppm_co: 4.1 },
-  { suhu: 24.0, kelembapan: 45, suara_db: 40, asap_metric: 3, ppm_co: 4.0 },
-  { suhu: 24.3, kelembapan: 46, suara_db: 41, asap_metric: 4, ppm_co: 4.1 },
-  { suhu: 24.2, kelembapan: 45, suara_db: 40, asap_metric: 5, ppm_co: 4.0 },
-  { suhu: 24.1, kelembapan: 45, suara_db: 40, asap_metric: 7, ppm_co: 4.1 },
-  { suhu: 24.2, kelembapan: 46, suara_db: 41, asap_metric: 8, ppm_co: 4.2 },
-  { suhu: 24.3, kelembapan: 46, suara_db: 40, asap_metric: 9, ppm_co: 4.2 },
-  { suhu: 24.1, kelembapan: 45, suara_db: 41, asap_metric: 11.5, ppm_co: 4.3 },
-  { suhu: 24.0, kelembapan: 45, suara_db: 40, asap_metric: 12.2, ppm_co: 4.2 },
-  { suhu: 24.2, kelembapan: 46, suara_db: 41, asap_metric: 13.0, ppm_co: 4.1 },
-  { suhu: 24.1, kelembapan: 45, suara_db: 40, asap_metric: 14.0, ppm_co: 4.1 },
-];
+function generate1YearData(base) {
+  const hasil = {};
+  const start = new Date("2025-01-01T00:00:00");
+  const jumlahHari = 365;
+  const intervalMenit = 15;
+  const dataPerHari = 24 * (60 / intervalMenit);
 
-// ======================================================
-// AREA 2
-// Fokus masalah: KEBISINGAN
-// 3 data terakhir buruk -> harus bisa trigger alert/telegram
-// ======================================================
-const dataArea2 = [
-  { suhu: 24.8, kelembapan: 50, suara_db: 42, asap_metric: 2, ppm_co: 4.5 },
-  { suhu: 24.9, kelembapan: 50, suara_db: 43, asap_metric: 2, ppm_co: 4.5 },
-  { suhu: 25.0, kelembapan: 51, suara_db: 44, asap_metric: 2, ppm_co: 4.6 },
-  { suhu: 25.1, kelembapan: 51, suara_db: 46, asap_metric: 2, ppm_co: 4.6 },
-  { suhu: 25.0, kelembapan: 50, suara_db: 48, asap_metric: 2, ppm_co: 4.7 },
-  { suhu: 24.9, kelembapan: 50, suara_db: 49, asap_metric: 2, ppm_co: 4.6 },
-  { suhu: 25.0, kelembapan: 51, suara_db: 50, asap_metric: 2, ppm_co: 4.7 },
-  { suhu: 25.1, kelembapan: 51, suara_db: 53, asap_metric: 2, ppm_co: 4.8 },
-  { suhu: 25.0, kelembapan: 50, suara_db: 57, asap_metric: 2, ppm_co: 4.7 },
-  { suhu: 24.9, kelembapan: 50, suara_db: 59, asap_metric: 2, ppm_co: 4.6 },
-  { suhu: 24.8, kelembapan: 49, suara_db: 60, asap_metric: 2, ppm_co: 4.5 },
-  { suhu: 24.9, kelembapan: 50, suara_db: 61, asap_metric: 2, ppm_co: 4.6 },
-];
+  let id = 0;
 
-// ======================================================
-// AREA 3
-// Fokus masalah: CO meningkat, ada kurang nyaman dan tidak nyaman
-// 3 data terakhir buruk -> bisa trigger telegram juga
-// ======================================================
-const dataArea3 = [
-  { suhu: 25.0, kelembapan: 54, suara_db: 42, asap_metric: 3, ppm_co: 4.8 },
-  { suhu: 25.1, kelembapan: 54, suara_db: 42, asap_metric: 3, ppm_co: 5.2 },
-  { suhu: 25.2, kelembapan: 55, suara_db: 43, asap_metric: 4, ppm_co: 5.8 },
-  { suhu: 25.3, kelembapan: 55, suara_db: 42, asap_metric: 4, ppm_co: 6.3 },
-  { suhu: 25.2, kelembapan: 55, suara_db: 43, asap_metric: 4, ppm_co: 7.0 },
-  { suhu: 25.3, kelembapan: 56, suara_db: 42, asap_metric: 5, ppm_co: 8.0 },
-  { suhu: 25.4, kelembapan: 56, suara_db: 43, asap_metric: 5, ppm_co: 8.8 },
-  { suhu: 25.3, kelembapan: 55, suara_db: 42, asap_metric: 5, ppm_co: 9.2 },
-  { suhu: 25.2, kelembapan: 55, suara_db: 41, asap_metric: 5, ppm_co: 10.1 },
-  { suhu: 25.1, kelembapan: 54, suara_db: 41, asap_metric: 4, ppm_co: 10.5 },
-  { suhu: 25.0, kelembapan: 54, suara_db: 40, asap_metric: 4, ppm_co: 10.8 },
-  { suhu: 24.9, kelembapan: 53, suara_db: 40, asap_metric: 4, ppm_co: 11.0 },
-];
+  for (let day = 0; day < jumlahHari; day++) {
+    for (let i = 0; i < dataPerHari; i++) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + day);
+      date.setMinutes(i * intervalMenit);
 
-// ======================================================
-// AREA 4
-// Fokus masalah: dingin + terlalu kering
-// Banyak masalah ringan untuk isi notifikasi
-// ======================================================
-const dataArea4 = [
-  { suhu: 20.8, kelembapan: 39, suara_db: 38, asap_metric: 2, ppm_co: 3.8 },
-  { suhu: 20.6, kelembapan: 38, suara_db: 38, asap_metric: 2, ppm_co: 3.8 },
-  { suhu: 20.5, kelembapan: 37, suara_db: 39, asap_metric: 2, ppm_co: 3.9 },
-  { suhu: 20.4, kelembapan: 36, suara_db: 38, asap_metric: 2, ppm_co: 3.8 },
-  { suhu: 20.3, kelembapan: 36, suara_db: 38, asap_metric: 2, ppm_co: 3.9 },
-  { suhu: 20.2, kelembapan: 35, suara_db: 39, asap_metric: 2, ppm_co: 3.8 },
-  { suhu: 20.1, kelembapan: 35, suara_db: 38, asap_metric: 2, ppm_co: 3.8 },
-  { suhu: 20.0, kelembapan: 36, suara_db: 38, asap_metric: 2, ppm_co: 3.9 },
-  { suhu: 20.2, kelembapan: 37, suara_db: 38, asap_metric: 2, ppm_co: 3.8 },
-  { suhu: 20.5, kelembapan: 38, suara_db: 37, asap_metric: 2, ppm_co: 3.8 },
-  { suhu: 20.7, kelembapan: 39, suara_db: 38, asap_metric: 2, ppm_co: 3.9 },
-  { suhu: 21.0, kelembapan: 40, suara_db: 38, asap_metric: 2, ppm_co: 3.8 },
-];
+      const hour = date.getHours();
+      const minute = date.getMinutes();
+      const waktuHarian = (hour * 60 + minute) / 1440;
+
+      const jamAktif = hour >= 8 && hour <= 17;
+
+      const suhu =
+        base.suhu +
+        Math.sin(waktuHarian * Math.PI * 2 - 1.2) * 1.2 +
+        Math.sin((day / 365) * Math.PI * 2) * 1.0 +
+        noise(0.4);
+
+      const kelembapan =
+        base.kelembapan +
+        Math.cos(waktuHarian * Math.PI * 2) * 4 +
+        Math.sin((day / 365) * Math.PI * 2) * 5 +
+        noise(1.5);
+
+      const suara =
+        base.suara +
+        (jamAktif ? 8 : 2) +
+        (hour >= 10 && hour <= 14 ? 3 : 0) +
+        noise(2.5);
+
+      const asapSpike = Math.random() > 0.995 ? 10 + Math.random() * 8 : 0;
+      const coSpike = Math.random() > 0.992 ? 4 + Math.random() * 5 : 0;
+
+      const asap = base.asap + asapSpike + noise(0.5);
+      const co = base.co + coSpike + noise(0.4);
+
+      hasil[`id_${id++}`] = {
+        suhu: Number(clamp(suhu, 18, 32).toFixed(1)),
+        kelembapan: Number(clamp(kelembapan, 30, 80).toFixed(1)),
+        suara_db: Number(clamp(suara, 30, 75).toFixed(1)),
+        asap_metric: Number(clamp(asap, 0, 25).toFixed(1)),
+        ppm_co: Number(clamp(co, 0, 18).toFixed(1)),
+        timestamp: Math.floor(date.getTime() / 1000),
+        waktu_text: formatWaktuText(date),
+      };
+    }
+  }
+
+  return hasil;
+}
+
+const area1History = generate1YearData({
+  suhu: 24,
+  kelembapan: 50,
+  suara: 39,
+  asap: 2,
+  co: 4,
+});
+
+const area2History = generate1YearData({
+  suhu: 25,
+  kelembapan: 52,
+  suara: 43,
+  asap: 2,
+  co: 4.5,
+});
+
+const area3History = generate1YearData({
+  suhu: 26,
+  kelembapan: 55,
+  suara: 41,
+  asap: 3,
+  co: 5,
+});
+
+const area4History = generate1YearData({
+  suhu: 22,
+  kelembapan: 45,
+  suara: 37,
+  asap: 2,
+  co: 3.5,
+});
+
+function getLatest(history) {
+  const keys = Object.keys(history);
+  return history[keys[keys.length - 1]];
+}
 
 export const DATA_DUMMY = {
   perpustakaan: {
     ruang_1: {
-      latest: {
-        ...dataArea1[dataArea1.length - 1],
-        timestamp: Math.floor(
-          new Date(
-            waktuAwal.getTime() + (dataArea1.length - 1) * 5 * 60000,
-          ).getTime() / 1000,
-        ),
-        waktu_text: formatWaktuText(
-          new Date(waktuAwal.getTime() + (dataArea1.length - 1) * 5 * 60000),
-        ),
-      },
-      history: buatRiwayat(waktuAwal, dataArea1),
+      latest: getLatest(area1History),
+      history: area1History,
     },
     ruang_2: {
-      latest: {
-        ...dataArea2[dataArea2.length - 1],
-        timestamp: Math.floor(
-          new Date(
-            waktuAwal.getTime() + (dataArea2.length - 1) * 5 * 60000,
-          ).getTime() / 1000,
-        ),
-        waktu_text: formatWaktuText(
-          new Date(waktuAwal.getTime() + (dataArea2.length - 1) * 5 * 60000),
-        ),
-      },
-      history: buatRiwayat(waktuAwal, dataArea2),
+      latest: getLatest(area2History),
+      history: area2History,
     },
     ruang_3: {
-      latest: {
-        ...dataArea3[dataArea3.length - 1],
-        timestamp: Math.floor(
-          new Date(
-            waktuAwal.getTime() + (dataArea3.length - 1) * 5 * 60000,
-          ).getTime() / 1000,
-        ),
-        waktu_text: formatWaktuText(
-          new Date(waktuAwal.getTime() + (dataArea3.length - 1) * 5 * 60000),
-        ),
-      },
-      history: buatRiwayat(waktuAwal, dataArea3),
+      latest: getLatest(area3History),
+      history: area3History,
     },
     ruang_4: {
-      latest: {
-        ...dataArea4[dataArea4.length - 1],
-        timestamp: Math.floor(
-          new Date(
-            waktuAwal.getTime() + (dataArea4.length - 1) * 5 * 60000,
-          ).getTime() / 1000,
-        ),
-        waktu_text: formatWaktuText(
-          new Date(waktuAwal.getTime() + (dataArea4.length - 1) * 5 * 60000),
-        ),
-      },
-      history: buatRiwayat(waktuAwal, dataArea4),
+      latest: getLatest(area4History),
+      history: area4History,
     },
   },
 };
