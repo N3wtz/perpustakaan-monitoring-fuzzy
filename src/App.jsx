@@ -1,25 +1,29 @@
 import { useMemo, useState } from "react";
+
 import ShellAplikasi from "./components/ShellAplikasi";
 import HalamanDashboard from "./pages/HalamanDashboard";
 import HalamanParameter from "./pages/HalamanParameter";
 import HalamanNotifikasi from "./pages/HalamanNotifikasi";
 import HalamanQoS from "./pages/HalamanQoS";
 import HalamanLogin from "./pages/HalamanLogin";
+
 import { useDataPerpustakaan } from "./hooks/useDataPerpustakaan";
+import { useDummyRealtimeFirebase } from "./hooks/useDummyRealtimeFirebase";
 import { useAlertFirebase } from "./hooks/useAlertFirebase";
 import { useMesinAlert } from "./hooks/useMesinAlert";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 
 function useKenyamananPerpustakaan(rooms) {
   return useMemo(() => {
-    const daftar = Object.values(rooms || {});
-    if (!daftar.length) return "Belum Ada Data";
+    const daftarOnline = Object.values(rooms || {}).filter(
+      (item) => item?.online && item?.fuzzy,
+    );
+    if (!daftarOnline.length) return "Belum Ada Data";
 
-    const adaBuruk = daftar.some(
+    const adaBuruk = daftarOnline.some(
       (item) => item?.fuzzy?.kenyamananTotal === "Tidak Nyaman",
     );
-
-    const adaPeringatan = daftar.some(
+    const adaPeringatan = daftarOnline.some(
       (item) => item?.fuzzy?.kenyamananTotal === "Kurang Nyaman",
     );
 
@@ -31,16 +35,16 @@ function useKenyamananPerpustakaan(rooms) {
 
 function IsiAplikasi() {
   const { user, loadingAuth } = useAuth();
-
   const [page, setPage] = useState("dashboard");
-  const [ruangAktif, setRuangAktif] = useState("ruang_1");
+  const [ruangAktif, setRuangAktif] = useState("bagian_l1_1");
 
   const sudahLogin = !!user;
 
-  const { rooms, loading } = useDataPerpustakaan({
-    aktif: sudahLogin,
-  });
+  // Mengirim 12 bagian dummy ke Firebase secara realtime.
+  // 4 sensor ESP32 asli tidak disentuh oleh hook ini.
+  useDummyRealtimeFirebase({ aktif: sudahLogin });
 
+  const { rooms, loading } = useDataPerpustakaan({ aktif: sudahLogin });
   const kenyamananPerpustakaan = useKenyamananPerpustakaan(rooms);
 
   const {
@@ -69,9 +73,7 @@ function IsiAplikasi() {
     );
   }
 
-  if (!user) {
-    return <HalamanLogin />;
-  }
+  if (!user) return <HalamanLogin />;
 
   if (loading || loadingTelegramSetting || loadingAlerts) {
     return (
