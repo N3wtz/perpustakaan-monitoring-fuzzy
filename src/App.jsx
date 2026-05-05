@@ -13,22 +13,35 @@ import { useAlertFirebase } from "./hooks/useAlertFirebase";
 import { useMesinAlert } from "./hooks/useMesinAlert";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 
+const PAGE_PARAMETER = [
+  "suhu",
+  "kelembapan",
+  "kebisingan",
+  "asap",
+  "kualitasUdara",
+  "kenyamananTotal",
+];
+
 function useKenyamananPerpustakaan(rooms) {
   return useMemo(() => {
     const daftarOnline = Object.values(rooms || {}).filter(
       (item) => item?.online && item?.fuzzy,
     );
+
     if (!daftarOnline.length) return "Belum Ada Data";
 
-    const adaBuruk = daftarOnline.some(
+    const adaTidakNyaman = daftarOnline.some(
       (item) => item?.fuzzy?.kenyamananTotal === "Tidak Nyaman",
     );
-    const adaPeringatan = daftarOnline.some(
+
+    if (adaTidakNyaman) return "Tidak Nyaman";
+
+    const adaKurangNyaman = daftarOnline.some(
       (item) => item?.fuzzy?.kenyamananTotal === "Kurang Nyaman",
     );
 
-    if (adaBuruk) return "Tidak Nyaman";
-    if (adaPeringatan) return "Kurang Nyaman";
+    if (adaKurangNyaman) return "Kurang Nyaman";
+
     return "Nyaman";
   }, [rooms]);
 }
@@ -40,12 +53,10 @@ function IsiAplikasi() {
 
   const sudahLogin = !!user;
 
-  // Mengirim 12 bagian dummy ke Firebase secara realtime.
-  // 4 sensor ESP32 asli tidak disentuh oleh hook ini.
   useDummyRealtimeFirebase({ aktif: sudahLogin });
 
   const { rooms, loading } = useDataPerpustakaan({ aktif: sudahLogin });
-  const kenyamananPerpustakaan = useKenyamananPerpustakaan(rooms);
+  const statusPerpustakaan = useKenyamananPerpustakaan(rooms);
 
   const {
     notifikasi,
@@ -67,49 +78,48 @@ function IsiAplikasi() {
 
   if (loadingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F3F5FA] text-slate-600">
+      <div className="flex min-h-screen items-center justify-center bg-slate-100 text-slate-600">
         Memeriksa login...
       </div>
     );
   }
 
-  if (!user) return <HalamanLogin />;
+  if (!user) {
+    return <HalamanLogin />;
+  }
 
   if (loading || loadingTelegramSetting || loadingAlerts) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F3F5FA] text-slate-600">
+      <div className="flex min-h-screen items-center justify-center bg-slate-100 text-slate-600">
         Memuat dashboard...
       </div>
     );
   }
 
-  let isi = null;
+  let konten = null;
 
   if (page === "dashboard") {
-    isi = (
+    konten = (
       <HalamanDashboard
         rooms={rooms}
-        kenyamananPerpustakaan={kenyamananPerpustakaan}
         ruangAktif={ruangAktif}
         setRuangAktif={setRuangAktif}
-        setPage={setPage}
+        statusPerpustakaan={statusPerpustakaan}
       />
     );
-  } else if (
-    ["suhu", "kelembapan", "kebisingan", "asap", "kualitasUdara"].includes(page)
-  ) {
-    isi = (
+  } else if (PAGE_PARAMETER.includes(page)) {
+    konten = (
       <HalamanParameter
-        page={page}
         rooms={rooms}
+        page={page}
         ruangAktif={ruangAktif}
         setRuangAktif={setRuangAktif}
       />
     );
   } else if (page === "qos") {
-    isi = <HalamanQoS rooms={rooms} />;
+    konten = <HalamanQoS rooms={rooms} />;
   } else if (page === "notifikasi") {
-    isi = (
+    konten = (
       <HalamanNotifikasi
         notifikasi={notifikasi}
         telegramAktifWebsite={telegramAktifWebsite}
@@ -117,16 +127,16 @@ function IsiAplikasi() {
       />
     );
   } else {
-    isi = (
-      <div className="rounded-2xl bg-white p-6 shadow-sm">
-        Halaman tidak ditemukan.
-      </div>
-    );
+    konten = <div className="text-slate-600">Halaman tidak ditemukan.</div>;
   }
 
   return (
-    <ShellAplikasi page={page} setPage={setPage}>
-      {isi}
+    <ShellAplikasi
+      page={page}
+      setPage={setPage}
+      notifikasiCount={notifikasi.length}
+    >
+      {konten}
     </ShellAplikasi>
   );
 }

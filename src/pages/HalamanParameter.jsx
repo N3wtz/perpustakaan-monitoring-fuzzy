@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Download } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -16,12 +16,8 @@ import PemilihRuang from "../components/PemilihRuang";
 import LencanaStatus from "../components/LencanaStatus";
 import KartuStatistik from "../components/KartuStatistik";
 
-import {
-  KONFIG_APP,
-  META_PARAMETER,
-  TATA_LETAK_BAGIAN,
-} from "../fuzzy/aturanFuzzy";
-
+import { META_PARAMETER, TATA_LETAK_BAGIAN } from "../fuzzy/aturanFuzzy";
+import { hitungFuzzyRuang } from "../fuzzy/mesinFuzzy";
 import {
   filterRiwayatByPeriode,
   kelompokkanGrafik,
@@ -29,6 +25,246 @@ import {
   angkaAman,
   buatFilterDefault,
 } from "../utils/helper";
+import { downloadCsvExcel } from "../utils/exportExcel";
+
+const META_KENYAMANAN_TOTAL = {
+  key: "skorTotal",
+  label: "Kenyamanan Total",
+  unit: "",
+};
+
+const KEY_FUZZY_PARAMETER = {
+  suhu: "suhu",
+  kelembapan: "kelembapan",
+  kebisingan: "kebisingan",
+  asap: "asap",
+  kualitasUdara: "co",
+};
+
+const LABEL_PARAMETER = {
+  suhu: "Suhu",
+  kelembapan: "Kelembapan",
+  kebisingan: "Kebisingan",
+  asap: "Indeks Asap",
+  kualitasUdara: "Karbon Monoksida",
+  kenyamananTotal: "Kenyamanan Total",
+};
+
+function metaHalaman(page) {
+  if (page === "kenyamananTotal") {
+    return META_KENYAMANAN_TOTAL;
+  }
+
+  if (page === "asap") {
+    return {
+      ...(META_PARAMETER.asap || {}),
+      label: "Indeks Asap",
+      unit: "indeks",
+    };
+  }
+
+  return META_PARAMETER[page] || META_KENYAMANAN_TOTAL;
+}
+
+function formatTanggal(timestamp) {
+  if (!timestamp) return "-";
+
+  return new Date(timestamp * 1000).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatWaktu(timestamp, waktuText) {
+  if (waktuText && waktuText !== "-") return waktuText;
+  if (!timestamp) return "-";
+
+  return new Date(timestamp * 1000).toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function formatAngka(nilai, digit = 2) {
+  const angka = Number(nilai);
+  if (!Number.isFinite(angka)) return "-";
+  return Number(angka.toFixed(digit));
+}
+
+function formatNilaiTampil(nilai, digit = 0) {
+  const angka = Number(nilai);
+  if (!Number.isFinite(angka)) return "-";
+  return angka.toFixed(digit);
+}
+
+function hitungFuzzyAman(data) {
+  try {
+    return hitungFuzzyRuang(data || {});
+  } catch (error) {
+    return null;
+  }
+}
+
+function skorTotalDariRecord(record) {
+  const fuzzy = hitungFuzzyAman(record);
+  return angkaAman(fuzzy?.skorTotal);
+}
+
+function kelompokkanGrafikKenyamananTotal(riwayat, periode) {
+  if (!riwayat?.length) return [];
+
+  if (periode === "hari") {
+    return riwayat.map((item) => ({
+      label: new Date(item.timestamp * 1000).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      value: skorTotalDariRecord(item),
+    }));
+  }
+
+  const map = new Map();
+
+  for (const item of riwayat) {
+    const d = new Date(item.timestamp * 1000);
+    const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        tanggal: d,
+        total: 0,
+        jumlah: 0,
+      });
+    }
+
+    const data = map.get(key);
+    data.total += skorTotalDariRecord(item);
+    data.jumlah += 1;
+  }
+
+  return Array.from(map.values())
+    .sort((a, b) => a.tanggal - b.tanggal)
+    .map((item) => ({
+      label: item.tanggal.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+      value: item.jumlah ? item.total / item.jumlah : 0,
+    }));
+}
+
+function buatRingkasanFilter(periode, filterTanggal) {
+  if (periode === "hari") return `Tanggal ${filterTanggal.tanggal}`;
+  if (periode === "bulan") return `Bulan ${filterTanggal.bulan}`;
+  return `${filterTanggal.tanggalMulai} sampai ${filterTanggal.tanggalSelesai}`;
+}
+
+function buatNamaFile(page, labelBagian, periode, filterTanggal) {
+  const bagian = labelBagian.toLowerCase().replace(/\s+/g, "_");
+  const rentang = buatRingkasanFilter(periode, filterTanggal)
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_\-]/g, "");
+
+  return `export_${page}_${bagian}_${rentang}.csv`;
+}
+
+function dataFuzzyAktif(fuzzy, page) {
+  if (!fuzzy) return null;
+  if (page === "kenyamananTotal") return null;
+
+  const key = KEY_FUZZY_PARAMETER[page];
+  return fuzzy?.[key] || null;
+}
+
+function nilaiParameterAktif(record, meta, page, fuzzy) {
+  if (page === "kenyamananTotal") return formatAngka(fuzzy?.skorTotal);
+  return formatAngka(record?.[meta.key]);
+}
+
+function buatBarisExport(
+  riwayat,
+  labelBagian,
+  page,
+  meta,
+  periode,
+  filterTanggal,
+) {
+  return (riwayat || []).map((item, index) => {
+    const fuzzy = hitungFuzzyAman(item) || {};
+    const aktif = dataFuzzyAktif(fuzzy, page);
+
+    return {
+      No: index + 1,
+      Tanggal: formatTanggal(item.timestamp),
+      Waktu: formatWaktu(item.timestamp, item.waktu_text),
+      Bagian: labelBagian,
+      Periode: periode,
+      Filter: buatRingkasanFilter(periode, filterTanggal),
+
+      "Suhu (C)": formatAngka(item.suhu),
+      "Kategori Suhu": fuzzy?.suhu?.label || "-",
+      "Kenyamanan Suhu": fuzzy?.suhu?.kenyamanan || "-",
+      "Skor Fuzzy Suhu": formatAngka(fuzzy?.suhu?.skor),
+
+      "Kelembapan (%)": formatAngka(item.kelembapan),
+      "Kategori Kelembapan": fuzzy?.kelembapan?.label || "-",
+      "Kenyamanan Kelembapan": fuzzy?.kelembapan?.kenyamanan || "-",
+      "Skor Fuzzy Kelembapan": formatAngka(fuzzy?.kelembapan?.skor),
+
+      "Kebisingan (dB)": formatAngka(item.suara_db),
+      "Kategori Kebisingan": fuzzy?.kebisingan?.label || "-",
+      "Kenyamanan Kebisingan": fuzzy?.kebisingan?.kenyamanan || "-",
+      "Skor Fuzzy Kebisingan": formatAngka(fuzzy?.kebisingan?.skor),
+
+      "Indeks Asap": formatAngka(item.asap_metric),
+      "Kategori Asap": fuzzy?.asap?.label || "-",
+      "Kenyamanan Asap": fuzzy?.asap?.kenyamanan || "-",
+      "Skor Fuzzy Asap": formatAngka(fuzzy?.asap?.skor),
+
+      "CO (ppm)": formatAngka(item.ppm_co),
+      "Kategori CO": fuzzy?.co?.label || "-",
+      "Kenyamanan CO": fuzzy?.co?.kenyamanan || "-",
+      "Skor Fuzzy CO": formatAngka(fuzzy?.co?.skor),
+
+      "Kenyamanan Total": fuzzy?.kenyamananTotal || "-",
+      "Skor Fuzzy Total": formatAngka(fuzzy?.skorTotal),
+
+      "Parameter Aktif": LABEL_PARAMETER[page] || meta.label,
+      "Nilai Parameter Aktif": nilaiParameterAktif(item, meta, page, fuzzy),
+      "Kategori Input Aktif":
+        page === "kenyamananTotal" ? "-" : aktif?.label || "-",
+      "Kenyamanan Fuzzy Aktif":
+        page === "kenyamananTotal"
+          ? fuzzy?.kenyamananTotal || "-"
+          : aktif?.kenyamanan || "-",
+      "Skor Fuzzy Aktif":
+        page === "kenyamananTotal"
+          ? formatAngka(fuzzy?.skorTotal)
+          : formatAngka(aktif?.skor),
+    };
+  });
+}
+
+function KartuNilaiTerkini({ judul, nilai, unit, sub }) {
+  return (
+    <KartuUmum className="h-full p-5">
+      <div className="text-[18px] text-slate-600">{judul}</div>
+      <div className="mt-7 flex items-end gap-3">
+        <div className="h-3 w-3 rounded-full bg-blue-500" />
+        <div className="text-[48px] font-semibold leading-none tracking-tight">
+          {nilai}
+          {unit ? (
+            <span className="ml-1 text-2xl text-slate-500">{unit}</span>
+          ) : null}
+        </div>
+      </div>
+      {sub ? <div className="mt-4 text-sm text-slate-500">{sub}</div> : null}
+    </KartuUmum>
+  );
+}
 
 export default function HalamanParameter({
   page,
@@ -40,39 +276,79 @@ export default function HalamanParameter({
   const [filterTanggal, setFilterTanggal] = useState(buatFilterDefault());
 
   const ruang = rooms?.[ruangAktif] || Object.values(rooms || {})[0];
-  const meta = META_PARAMETER[page];
+  const meta = metaHalaman(page);
+
   const labelBagian =
     TATA_LETAK_BAGIAN.find((item) => item.id === ruangAktif)?.label || "Bagian";
 
-  const dataGrafik = useMemo(() => {
-    if (!ruang?.history?.length || !meta) return [];
+  const riwayatTerfilter = useMemo(() => {
+    if (!ruang?.history?.length) return [];
+    return filterRiwayatByPeriode(ruang.history, periode, filterTanggal);
+  }, [ruang, periode, filterTanggal]);
 
-    const terfilter = filterRiwayatByPeriode(
-      ruang.history,
+  const dataGrafik = useMemo(() => {
+    if (!riwayatTerfilter.length) return [];
+
+    if (page === "kenyamananTotal") {
+      return kelompokkanGrafikKenyamananTotal(riwayatTerfilter, periode);
+    }
+
+    return kelompokkanGrafik(riwayatTerfilter, meta.key, periode);
+  }, [riwayatTerfilter, meta, page, periode]);
+
+  const statistik = useMemo(() => hitungStatistik(dataGrafik), [dataGrafik]);
+
+  const terkini = ruang?.latest || {};
+  const fuzzyTerkini = ruang?.fuzzy || hitungFuzzyAman(terkini) || {};
+  const fuzzyAktif = dataFuzzyAktif(fuzzyTerkini, page);
+
+  const status =
+    page === "kenyamananTotal"
+      ? fuzzyTerkini?.kenyamananTotal || "-"
+      : fuzzyAktif?.kenyamanan || ruang?.kartuParameter?.[page]?.status || "-";
+
+  const detail =
+    page === "kenyamananTotal"
+      ? `Skor fuzzy total: ${formatNilaiTampil(fuzzyTerkini?.skorTotal, 2)}`
+      : `${fuzzyAktif?.label || "-"} • Skor fuzzy: ${formatNilaiTampil(
+          fuzzyAktif?.skor,
+          2,
+        )}`;
+
+  const nilaiTerkini =
+    page === "kenyamananTotal"
+      ? formatNilaiTampil(fuzzyTerkini?.skorTotal, 2)
+      : formatNilaiTampil(terkini?.[meta.key], 0);
+
+  const unitTerkini = page === "kenyamananTotal" ? "" : meta?.unit || "";
+
+  function handleExportExcel() {
+    const rows = buatBarisExport(
+      riwayatTerfilter,
+      labelBagian,
+      page,
+      meta,
       periode,
       filterTanggal,
     );
-    return kelompokkanGrafik(terfilter, meta.key, periode);
-  }, [ruang, meta, periode, filterTanggal]);
 
-  const statistik = useMemo(() => hitungStatistik(dataGrafik), [dataGrafik]);
-  const terkini = ruang?.latest || {};
-  const status = ruang?.kartuParameter?.[page]?.status || "-";
-  const detail = ruang?.kartuParameter?.[page]?.detail || "-";
+    downloadCsvExcel(
+      rows,
+      buatNamaFile(page, labelBagian, periode, filterTanggal),
+    );
+  }
 
   return (
     <>
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <h1 className="text-4xl font-bold tracking-tight">
-          {meta?.label || "Parameter"}
-        </h1>
-        <div className="flex items-center gap-3 rounded-full bg-transparent px-4 py-2 opacity-0 pointer-events-none">
-          <div className="h-12 w-12 rounded-full bg-slate-200" />
-          <div>
-            <div className="text-lg font-semibold">Perpustakaan</div>
-            <div className="text-xs text-slate-600">{KONFIG_APP.namaAdmin}</div>
-          </div>
-          <ChevronDown className="h-4 w-4 text-slate-500" />
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">
+            {meta?.label || "Parameter"}
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Data grafik dan export mengikuti bagian, periode, serta tanggal yang
+            sedang dipilih.
+          </p>
         </div>
       </div>
 
@@ -84,6 +360,9 @@ export default function HalamanParameter({
             </div>
             <div className="text-xl font-semibold text-slate-800">
               {labelBagian}
+            </div>
+            <div className="mt-1 text-xs text-slate-500">
+              {riwayatTerfilter.length} data sesuai filter
             </div>
           </div>
 
@@ -173,6 +452,16 @@ export default function HalamanParameter({
                 </div>
               </>
             )}
+
+            <button
+              type="button"
+              onClick={handleExportExcel}
+              disabled={!riwayatTerfilter.length}
+              className="flex h-[42px] items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              <Download className="h-4 w-4" />
+              Export Excel
+            </button>
           </div>
         </div>
       </KartuUmum>
@@ -187,6 +476,11 @@ export default function HalamanParameter({
               <LencanaStatus status={status} />
               <span className="text-sm text-slate-500">{detail}</span>
             </div>
+          </div>
+
+          <div className="rounded-2xl bg-slate-100 px-4 py-2 text-xs text-slate-600">
+            Export berisi data sensor, kategori input fuzzy, output kenyamanan,
+            dan skor fuzzy.
           </div>
         </div>
 
@@ -218,7 +512,7 @@ export default function HalamanParameter({
         </div>
       </KartuUmum>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch">
+      <div className="mt-4 grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-5">
         <KartuStatistik
           judul="Rata-rata"
           nilai={statistik.rataRata}
@@ -234,18 +528,28 @@ export default function HalamanParameter({
           nilai={statistik.terendah}
           unit={meta?.unit || ""}
         />
-
-        <KartuUmum className="p-5 h-full">
-          <div className="text-[18px] text-slate-600">Nilai Terkini</div>
-          <div className="mt-7 flex items-end gap-3">
-            <div className="h-3 w-3 rounded-full bg-blue-500" />
-            <div className="text-[56px] font-semibold leading-none tracking-tight">
-              {meta?.key === "asap_metric"
-                ? `${angkaAman(terkini.asap_metric).toFixed(0)}${meta?.unit}`
-                : `${angkaAman(terkini[meta?.key]).toFixed(0)}${meta?.unit}`}
-            </div>
-          </div>
-        </KartuUmum>
+        <KartuNilaiTerkini
+          judul={
+            page === "kenyamananTotal" ? "Skor Total Terkini" : "Nilai Terkini"
+          }
+          nilai={nilaiTerkini}
+          unit={unitTerkini}
+          sub={page === "kenyamananTotal" ? status : fuzzyAktif?.label || "-"}
+        />
+        <KartuNilaiTerkini
+          judul={
+            page === "kenyamananTotal" ? "Status Terkini" : "Skor Fuzzy Terkini"
+          }
+          nilai={
+            page === "kenyamananTotal"
+              ? status
+              : formatNilaiTampil(fuzzyAktif?.skor, 2)
+          }
+          unit=""
+          sub={
+            page === "kenyamananTotal" ? detail : fuzzyAktif?.kenyamanan || "-"
+          }
+        />
       </div>
     </>
   );

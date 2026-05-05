@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   Clock3,
@@ -10,326 +9,332 @@ import {
   Wind,
 } from "lucide-react";
 
-import PanelStatusArea from "../components/PanelStatusArea";
-import { formatTanggalJam } from "../utils/helper";
-import { KONFIG_APP, TATA_LETAK_RUANG } from "../fuzzy/aturanFuzzy";
+import KartuUmum from "../components/KartuUmum";
+import LencanaStatus from "../components/LencanaStatus";
+import { TATA_LETAK_BAGIAN } from "../fuzzy/aturanFuzzy";
 
-function getToneStatus(status) {
-  if (!status || status === "-") return "kosong";
-  if (status === "Nyaman" || status === "Normal" || status === "Baik") {
-    return "baik";
-  }
-  if (status === "Kurang Nyaman") return "peringatan";
-  return "bahaya";
+function angkaAman(nilai, digit = 1) {
+  const angka = Number(nilai);
+  if (!Number.isFinite(angka)) return "-";
+  return angka.toFixed(digit);
 }
 
 function getKelasStatus(status) {
-  const tone = getToneStatus(status);
-
-  if (tone === "baik") {
+  if (status === "Nyaman" || status === "Normal" || status === "Baik") {
     return {
-      text: "text-emerald-600",
-      dot: "bg-emerald-500",
+      bg: "bg-emerald-50",
+      border: "border-emerald-200",
+      text: "text-emerald-700",
+      icon: "bg-emerald-100 text-emerald-700",
+      badge: "bg-emerald-100 text-emerald-700",
     };
   }
 
-  if (tone === "peringatan") {
+  if (status === "Kurang Nyaman") {
     return {
-      text: "text-amber-600",
-      dot: "bg-amber-500",
+      bg: "bg-amber-50",
+      border: "border-amber-200",
+      text: "text-amber-700",
+      icon: "bg-amber-100 text-amber-700",
+      badge: "bg-amber-100 text-amber-700",
     };
   }
 
-  if (tone === "bahaya") {
+  if (status === "Belum Ada Data" || status === "Offline" || status === "-") {
     return {
-      text: "text-red-600",
-      dot: "bg-red-500",
-    };
-  }
-
-  return {
-    text: "text-slate-400",
-    dot: "bg-slate-300",
-  };
-}
-
-function ambilLantai(bagian) {
-  if (bagian?.lantai) return Number(bagian.lantai);
-
-  const dariId = String(bagian?.id || "").match(/l(\d+)/i);
-  if (dariId) return Number(dariId[1]);
-
-  return 1;
-}
-
-function ambilInfoBagian(id) {
-  const bagian = TATA_LETAK_RUANG.find((item) => item.id === id);
-
-  if (!bagian) {
-    return {
-      lantai: 1,
-      label: "Bagian 1",
+      bg: "bg-slate-50",
+      border: "border-slate-200",
+      text: "text-slate-600",
+      icon: "bg-slate-100 text-slate-500",
+      badge: "bg-slate-100 text-slate-600",
     };
   }
 
   return {
-    lantai: ambilLantai(bagian),
-    label: bagian.label || "Bagian 1",
+    bg: "bg-red-50",
+    border: "border-red-200",
+    text: "text-red-700",
+    icon: "bg-red-100 text-red-700",
+    badge: "bg-red-100 text-red-700",
   };
 }
 
-function adaDataLatest(latest) {
-  return latest && Object.keys(latest).length > 0;
+function formatTanggal(now) {
+  const tanggal = now instanceof Date ? now : new Date();
+  return tanggal.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 }
 
-function formatNilai(latest, key, digit = 0) {
-  if (!adaDataLatest(latest)) return "-";
-
-  const nilai = Number(latest?.[key]);
-  if (!Number.isFinite(nilai)) return "-";
-
-  return nilai.toFixed(digit);
+function formatJam(now) {
+  const tanggal = now instanceof Date ? now : new Date();
+  return tanggal.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
-function formatStatus(parameter) {
+function labelInput(parameter) {
+  return parameter?.label || "-";
+}
+
+function kenyamanan(parameter) {
   return parameter?.kenyamanan || "-";
 }
 
-function KartuInfo({
-  title,
-  icon,
-  children,
-  titleClassName = "whitespace-pre-line text-[17px] font-medium leading-relaxed text-slate-800",
-}) {
-  const Icon = icon;
-
+function KartuJam({ now }) {
   return (
-    <div className="rounded-[26px] bg-white p-6 shadow-sm ring-1 ring-slate-200/80">
-      <div className="mb-7 flex items-start justify-between gap-4">
-        <p className={titleClassName}>{title}</p>
-
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500 text-white shadow-md shadow-blue-200">
-          <Icon className="h-7 w-7" />
+    <KartuUmum className="flex h-full flex-col justify-between p-5">
+      <div className="flex items-center gap-3 text-slate-500">
+        <div className="rounded-2xl bg-slate-100 p-3 text-slate-600">
+          <CalendarDays className="h-5 w-5" />
         </div>
+        <div className="text-sm">Tanggal dan Waktu</div>
       </div>
 
-      {children}
-    </div>
+      <div className="mt-8">
+        <div className="text-2xl font-semibold text-slate-900">
+          {formatJam(now)}
+        </div>
+        <div className="mt-2 text-base text-slate-500">
+          {formatTanggal(now)}
+        </div>
+      </div>
+    </KartuUmum>
   );
 }
 
-function KartuJam() {
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(
-      () => setNow(new Date()),
-      KONFIG_APP.refreshJamMs || 1000,
-    );
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const { tanggal, jam } = formatTanggalJam(now);
+function KartuKenyamanan({ statusPerpustakaan }) {
+  const kelas = getKelasStatus(statusPerpustakaan);
 
   return (
-    <KartuInfo
-      title="Waktu"
-      icon={Clock3}
-      titleClassName="whitespace-pre-line text-[22px] font-semibold leading-relaxed text-slate-900"
-    >
-      <div className="space-y-2">
-        <div className="flex items-center gap-4">
-          <CalendarDays className="h-6 w-6 text-slate-500" />
-          <p className="text-[26px] font-semibold text-slate-950">{tanggal}</p>
+    <KartuUmum className={`h-full border p-5 ${kelas.bg} ${kelas.border}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className={`rounded-2xl p-3 ${kelas.icon}`}>
+            <Users className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-sm text-slate-500">
+              Kenyamanan Perpustakaan
+            </div>
+            <div className={`mt-2 text-2xl font-semibold ${kelas.text}`}>
+              {statusPerpustakaan}
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Clock3 className="h-6 w-6 text-slate-500" />
-          <p className="text-[26px] font-semibold text-slate-950">{jam}</p>
-        </div>
+        <LencanaStatus status={statusPerpustakaan} />
       </div>
-    </KartuInfo>
-  );
-}
 
-function KartuKenyamanan({ status }) {
-  const kelas = getKelasStatus(status);
-
-  const deskripsi =
-    status === "Nyaman"
-      ? "Kondisi perpustakaan baik"
-      : status === "Kurang Nyaman"
-        ? "Kondisi perlu diperhatikan"
-        : "Kondisi perlu penanganan";
-
-  return (
-    <KartuInfo title={"Kenyamanan\nKeseluruhan\nPerpustakaan"} icon={Users}>
-      <p
-        className={`text-[24px] leading-tight ${kelas.text} ${
-          status === "Kurang Nyaman" ? "font-bold" : "font-semibold"
-        }`}
-      >
-        {status || "Belum ada data"}
+      <p className="mt-6 text-sm leading-6 text-slate-600">
+        Status ini diambil dari kenyamanan total seluruh bagian yang sedang
+        online.
       </p>
-
-      <p className="mt-3 text-sm font-normal text-slate-500">{deskripsi}</p>
-    </KartuInfo>
+    </KartuUmum>
   );
 }
 
-function KartuParameter({ ikon: Ikon, judul, nilai, unit, status, rentang }) {
-  const kelas = getKelasStatus(status);
+function KartuParameter({
+  ikon: Ikon,
+  judul,
+  nilai,
+  unit,
+  labelKategori,
+  outputKenyamanan,
+  rentang,
+}) {
+  const kelas = getKelasStatus(outputKenyamanan);
   const tidakAdaData = nilai === "-";
 
   return (
-    <div className="h-full rounded-[24px] bg-white p-5 shadow-sm ring-1 ring-slate-200/80 transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-500 text-white shadow-md shadow-blue-100">
-          <Ikon className="h-6 w-6" />
+    <div className={`rounded-3xl border p-5 ${kelas.bg} ${kelas.border}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-sm text-slate-500">{judul}</div>
+          <div className="mt-3 flex items-end gap-1">
+            <span className="text-3xl font-semibold text-slate-900">
+              {nilai}
+            </span>
+            {!tidakAdaData && unit ? (
+              <span className="pb-1 text-sm text-slate-500">{unit}</span>
+            ) : null}
+          </div>
         </div>
 
-        <p className="text-[17px] font-medium leading-snug text-slate-700">
-          {judul}
-        </p>
+        <div className={`rounded-2xl p-3 ${kelas.icon}`}>
+          <Ikon className="h-5 w-5" />
+        </div>
       </div>
 
-      <div className="mt-7 text-[32px] font-semibold leading-none text-slate-950">
-        {nilai}
-        {!tidakAdaData && (
-          <span className="ml-2 text-[22px] font-medium">{unit}</span>
-        )}
-      </div>
-
-      <div className="mt-5 flex items-center gap-2">
-        {!tidakAdaData && (
-          <span className={`h-2.5 w-2.5 rounded-full ${kelas.dot}`} />
-        )}
-
-        <p
-          className={`text-sm font-medium ${
-            tidakAdaData ? "text-slate-400" : kelas.text
-          }`}
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <span
+          className={`rounded-full px-3 py-1 text-sm font-semibold ${kelas.badge}`}
         >
-          {tidakAdaData ? "Belum ada data" : status}
-        </p>
+          {labelKategori}
+        </span>
+        <span className="rounded-full bg-white/80 px-3 py-1 text-xs text-slate-600">
+          Output: {outputKenyamanan}
+        </span>
       </div>
 
-      <p className="mt-4 text-sm font-normal text-slate-400">{rentang}</p>
+      <div className="mt-4 text-xs text-slate-500">Rentang aman: {rentang}</div>
     </div>
+  );
+}
+
+function PanelStatusArea({ rooms, ruangAktif, setRuangAktif }) {
+  return (
+    <KartuUmum className="p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Peta Bagian Perpustakaan
+          </h2>
+          <p className="text-sm text-slate-500">
+            Pilih bagian untuk melihat data sensor dan hasil fuzzy terbaru.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
+          {TATA_LETAK_BAGIAN.map((bagian) => {
+            const data = rooms?.[bagian.id];
+            const status = data?.online
+              ? data?.fuzzy?.kenyamananTotal || "-"
+              : "Offline";
+            const kelas = getKelasStatus(status);
+            const aktif = ruangAktif === bagian.id;
+
+            return (
+              <button
+                key={bagian.id}
+                type="button"
+                onClick={() => setRuangAktif(bagian.id)}
+                className={`rounded-2xl border p-4 text-left transition ${kelas.bg} ${kelas.border} ${
+                  aktif
+                    ? "ring-2 ring-blue-500"
+                    : "hover:-translate-y-0.5 hover:shadow-sm"
+                }`}
+              >
+                <div className="text-sm font-semibold text-slate-900">
+                  {bagian.label}
+                </div>
+                <div className={`mt-2 text-xs font-medium ${kelas.text}`}>
+                  {status}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </KartuUmum>
   );
 }
 
 export default function HalamanDashboard({
   rooms,
-  kenyamananPerpustakaan,
   ruangAktif,
   setRuangAktif,
-  setPage,
+  now,
+  statusPerpustakaan,
 }) {
-  const ruangUtama = rooms?.[ruangAktif] || {};
-  const latest = ruangUtama?.latest || {};
-  const fuzzy = ruangUtama?.fuzzy || {};
+  const ruang = rooms?.[ruangAktif] || {};
+  const latest = ruang?.latest || {};
+  const fuzzy = ruang?.fuzzy || {};
 
-  const bagianAktif = useMemo(() => ambilInfoBagian(ruangAktif), [ruangAktif]);
+  const bagianAktif = TATA_LETAK_BAGIAN.find((item) => item.id === ruangAktif);
 
   const parameterCards = [
     {
-      key: "suhu",
       judul: "Suhu",
-      nilai: formatNilai(latest, "suhu", 1),
-      unit: "°C",
-      status: formatStatus(fuzzy?.suhu),
-      rentang: "20 - 28 °C",
       ikon: Thermometer,
-      page: "suhu",
+      nilai: angkaAman(latest.suhu),
+      unit: "°C",
+      labelKategori: labelInput(fuzzy?.suhu),
+      outputKenyamanan: kenyamanan(fuzzy?.suhu),
+      rentang: "23–26 °C",
     },
     {
-      key: "kelembapan",
       judul: "Kelembapan",
-      nilai: formatNilai(latest, "kelembapan", 0),
-      unit: "%",
-      status: formatStatus(fuzzy?.kelembapan),
-      rentang: "40 - 60%",
       ikon: Droplets,
-      page: "kelembapan",
+      nilai: angkaAman(latest.kelembapan),
+      unit: "%",
+      labelKategori: labelInput(fuzzy?.kelembapan),
+      outputKenyamanan: kenyamanan(fuzzy?.kelembapan),
+      rentang: "40–60 %",
     },
     {
-      key: "kebisingan",
       judul: "Kebisingan",
-      nilai: formatNilai(latest, "suara_db", 0),
-      unit: "dB",
-      status: formatStatus(fuzzy?.kebisingan),
-      rentang: "< 45 dB",
       ikon: Volume2,
-      page: "kebisingan",
+      nilai: angkaAman(latest.suara_db),
+      unit: "dB",
+      labelKategori: labelInput(fuzzy?.kebisingan),
+      outputKenyamanan: kenyamanan(fuzzy?.kebisingan),
+      rentang: "< 55 dB",
     },
     {
-      key: "asap",
-      judul: "Asap",
-      nilai: formatNilai(latest, "asap_metric", 0),
-      unit: "ppm",
-      status: formatStatus(fuzzy?.asap),
-      rentang: "< 10 ppm",
+      judul: "Indeks Asap",
       ikon: Cloud,
-      page: "asap",
+      nilai: angkaAman(latest.asap_metric),
+      unit: "indeks",
+      labelKategori: labelInput(fuzzy?.asap),
+      outputKenyamanan: kenyamanan(fuzzy?.asap),
+      rentang: "< 10 indeks",
     },
     {
-      key: "kualitasUdara",
-      judul: "Kualitas Udara",
-      nilai: formatNilai(latest, "ppm_co", 0),
-      unit: "ppm",
-      status: formatStatus(fuzzy?.co),
-      rentang: "< 6 ppm",
+      judul: "Karbon Monoksida",
       ikon: Wind,
-      page: "kualitasUdara",
+      nilai: angkaAman(latest.ppm_co),
+      unit: "ppm",
+      labelKategori: labelInput(fuzzy?.co),
+      outputKenyamanan: kenyamanan(fuzzy?.co),
+      rentang: "< 9 ppm",
     },
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-[250px_minmax(0,1fr)] gap-5">
-        <aside className="space-y-5">
-          <KartuKenyamanan status={kenyamananPerpustakaan} />
-          <KartuJam />
-        </aside>
-
-        <PanelStatusArea
-          rooms={rooms}
-          ruangAktif={ruangAktif}
-          setRuangAktif={setRuangAktif}
-        />
+    <div className="space-y-6">
+      <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+        <KartuKenyamanan statusPerpustakaan={statusPerpustakaan} />
+        <KartuJam now={now} />
       </div>
 
-      <section className="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-slate-200/80">
-        <p className="text-base font-normal text-slate-500">
-          Nilai parameter bagian terpilih
-        </p>
+      <PanelStatusArea
+        rooms={rooms}
+        ruangAktif={ruangAktif}
+        setRuangAktif={setRuangAktif}
+      />
 
-        <h2 className="mt-1 text-[26px] font-semibold tracking-tight text-slate-950">
-          Lantai {bagianAktif.lantai} - {bagianAktif.label}
-        </h2>
+      <KartuUmum className="p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">
+              Data Sensor {bagianAktif?.label || ruangAktif}
+            </h2>
+            <p className="text-sm text-slate-500">
+              Teks pada kartu menunjukkan kategori input fuzzy. Warna kartu
+              menunjukkan output kenyamanan fuzzy.
+            </p>
+          </div>
 
-        <div className="mt-6 grid grid-cols-5 gap-4">
+          <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-600">
+            <Clock3 className="h-4 w-4" />
+            {latest?.waktu_text || "Belum ada waktu data"}
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           {parameterCards.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => setPage(item.page)}
-              className="text-left"
-            >
-              <KartuParameter
-                ikon={item.ikon}
-                judul={item.judul}
-                nilai={item.nilai}
-                unit={item.unit}
-                status={item.status}
-                rentang={item.rentang}
-              />
-            </button>
+            <KartuParameter key={item.judul} {...item} />
           ))}
         </div>
-      </section>
+      </KartuUmum>
     </div>
   );
 }
