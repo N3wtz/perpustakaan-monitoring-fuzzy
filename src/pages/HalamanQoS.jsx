@@ -443,9 +443,10 @@ export default function HalamanQoS({ rooms }) {
               Catatan Pengukuran
             </div>
             <p className="mt-1">
-              Packet loss dihitung dari loncatan nomor seq pada paket latest
-              ESP32. Dummy realtime tetap boleh muncul di dashboard, tetapi
-              tidak masuk ke tabel QoS ini.
+              Delay dihitung dari selisih waktu antara data dikirim oleh ESP32
+              hingga data diterima atau ditampilkan pada website. Sementara itu,
+              packet loss dihitung berdasarkan adanya loncatan nomor sequence
+              pada paket data latest yang dikirim oleh ESP32.
             </p>
           </div>
         </div>
