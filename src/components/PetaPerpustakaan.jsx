@@ -69,7 +69,7 @@ export default function PetaPerpustakaan({
   setBagianAktif,
 }) {
   return (
-    <div className="grid grid-cols-4 grid-rows-2 gap-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
       {daftarBagian.map((bagian) => {
         const state = rooms?.[bagian.id];
         const status = getStatusBagian(state);
@@ -83,25 +83,27 @@ export default function PetaPerpustakaan({
             onClick={() => setBagianAktif(bagian.id)}
             className={`relative h-[150px] overflow-hidden rounded-[22px] border transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${kelas.kartu}`}
           >
-            <div
-              className={`absolute left-1/2 top-4 flex h-[36px] min-w-[92px] -translate-x-1/2 items-center justify-center rounded-full border bg-white px-4 text-center text-[13px] font-medium leading-none shadow-sm ${kelas.label}`}
-            >
-              {bagian.label}
-            </div>
-
-            <div className="absolute left-1/2 top-[66px] flex h-[54px] -translate-x-1/2 items-end justify-center gap-4">
-              {Array.from({ length: 2 }).map((_, index) => (
+            <div className="flex h-full flex-col justify-between p-4 text-left">
+              <div>
                 <div
-                  key={index}
-                  className={`h-[54px] w-[18px] rounded-md border ${kelas.bar}`}
-                />
-              ))}
-            </div>
+                  className={`inline-flex rounded-full border bg-white/70 px-3 py-1 text-xs font-semibold ${kelas.label}`}
+                >
+                  {bagian.label}
+                </div>
+              </div>
 
-            <div
-              className={`absolute bottom-3 left-3 right-3 truncate text-center text-[12px] font-medium leading-none ${kelas.status}`}
-            >
-              {singkatStatus(status)}
+              <div className="space-y-2">
+                {Array.from({ length: 2 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-3 rounded-full border ${kelas.bar}`}
+                  />
+                ))}
+              </div>
+
+              <div className={`text-xs font-semibold ${kelas.status}`}>
+                {singkatStatus(status)}
+              </div>
             </div>
           </button>
         );

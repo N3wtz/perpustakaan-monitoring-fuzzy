@@ -1,108 +1,52 @@
+// ======================================================
+// KONFIGURASI APLIKASI
+// ======================================================
 export const KONFIG_APP = {
   namaAplikasi: "Perpustakaan Udayana",
   namaAdmin: "Admin",
 
   // false = baca Firebase asli.
-  // true  = pakai DATA_DUMMY lokal dari src/utils/dataDummy.js.
+  // true = pakai DATA_DUMMY lokal dari src/utils/dataDummy.js.
   gunakanDataDummy: false,
 
-  // Dummy realtime Firebase hanya menulis 12 bagian dummy.
-  // 4 bagian ESP32 asli tidak akan pernah ditimpa dummy.
+  // Dummy realtime Firebase hanya menulis bagian dummy lantai 2.
+  // Bagian ESP32 asli tidak akan pernah ditimpa dummy.
   dummyRealtimeFirebaseAktif: true,
-  dummyLatestIntervalMs: 5000, // sama seperti ESP32: latest tiap 5 detik
-  dummyHistoryIntervalMs: 60000, // sama seperti ESP32: history tiap 1 menit
+  dummyLatestIntervalMs: 5000,
+  dummyHistoryIntervalMs: 60000,
 
   // Jika ESP32 tidak mengirim latest lebih dari nilai ini, UI menampilkan Offline.
-  // Karena ESP32 mengirim tiap 5 detik, 15 detik berarti sekitar 3 kali interval gagal.
   esp32OfflineTimeoutMs: 15000,
 
   // QoS hanya dihitung dari sensor ESP32 asli, bukan dummy.
   qosHanyaSensorAsli: true,
-
   refreshJamMs: 1000,
 };
 
+// ======================================================
+// KONFIGURASI AREA YANG DITAMPILKAN
+// ======================================================
+// Struktur Firebase tidak diubah. Path lama /perpustakaan/bagian_l1_x
+// tetap boleh ada, tetapi website hanya membaca dan menampilkan lantai 2.
+export const LANTAI_YANG_DITAMPILKAN = 2;
+
+// ESP32 asli berada di lantai 2 bagian 1, 3, 6, dan 8.
 export const DAFTAR_BAGIAN_ESP32_ASLI = [
-  "bagian_l1_2",
-  "bagian_l1_6",
-  "bagian_l2_2",
+  "bagian_l2_1",
+  "bagian_l2_3",
   "bagian_l2_6",
+  "bagian_l2_8",
+];
+
+// Bagian dummy realtime berada di lantai 2 bagian 2, 4, 5, dan 7.
+export const DAFTAR_BAGIAN_DUMMY_REALTIME = [
+  "bagian_l2_2",
+  "bagian_l2_4",
+  "bagian_l2_5",
+  "bagian_l2_7",
 ];
 
 export const TATA_LETAK_BAGIAN = [
-  {
-    id: "bagian_l1_1",
-    label: "Bagian 1",
-    labelLengkap: "Lantai 1 - Bagian 1",
-    labelPendek: "B1",
-    lantai: 1,
-    nomor: 1,
-    sumber: "dummy",
-  },
-  {
-    id: "bagian_l1_2",
-    label: "Bagian 2",
-    labelLengkap: "Lantai 1 - Bagian 2",
-    labelPendek: "B2",
-    lantai: 1,
-    nomor: 2,
-    sumber: "esp32",
-  },
-  {
-    id: "bagian_l1_3",
-    label: "Bagian 3",
-    labelLengkap: "Lantai 1 - Bagian 3",
-    labelPendek: "B3",
-    lantai: 1,
-    nomor: 3,
-    sumber: "dummy",
-  },
-  {
-    id: "bagian_l1_4",
-    label: "Bagian 4",
-    labelLengkap: "Lantai 1 - Bagian 4",
-    labelPendek: "B4",
-    lantai: 1,
-    nomor: 4,
-    sumber: "dummy",
-  },
-  {
-    id: "bagian_l1_5",
-    label: "Bagian 5",
-    labelLengkap: "Lantai 1 - Bagian 5",
-    labelPendek: "B5",
-    lantai: 1,
-    nomor: 5,
-    sumber: "dummy",
-  },
-  {
-    id: "bagian_l1_6",
-    label: "Bagian 6",
-    labelLengkap: "Lantai 1 - Bagian 6",
-    labelPendek: "B6",
-    lantai: 1,
-    nomor: 6,
-    sumber: "esp32",
-  },
-  {
-    id: "bagian_l1_7",
-    label: "Bagian 7",
-    labelLengkap: "Lantai 1 - Bagian 7",
-    labelPendek: "B7",
-    lantai: 1,
-    nomor: 7,
-    sumber: "dummy",
-  },
-  {
-    id: "bagian_l1_8",
-    label: "Bagian 8",
-    labelLengkap: "Lantai 1 - Bagian 8",
-    labelPendek: "B8",
-    lantai: 1,
-    nomor: 8,
-    sumber: "dummy",
-  },
-
   {
     id: "bagian_l2_1",
     label: "Bagian 1",
@@ -110,7 +54,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B1",
     lantai: 2,
     nomor: 1,
-    sumber: "dummy",
+    sumber: "esp32",
   },
   {
     id: "bagian_l2_2",
@@ -119,7 +63,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B2",
     lantai: 2,
     nomor: 2,
-    sumber: "esp32",
+    sumber: "dummy",
   },
   {
     id: "bagian_l2_3",
@@ -128,7 +72,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B3",
     lantai: 2,
     nomor: 3,
-    sumber: "dummy",
+    sumber: "esp32",
   },
   {
     id: "bagian_l2_4",
@@ -173,7 +117,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B8",
     lantai: 2,
     nomor: 8,
-    sumber: "dummy",
+    sumber: "esp32",
   },
 ];
 
@@ -190,7 +134,7 @@ export const META_PARAMETER = {
   suhu: { key: "suhu", label: "Suhu", unit: "°C" },
   kelembapan: { key: "kelembapan", label: "Kelembapan", unit: "%" },
   kebisingan: { key: "suara_db", label: "Kebisingan", unit: "dB" },
-  asap: { key: "asap_metric", label: "Asap", unit: "ppm" },
+  asap: { key: "asap_metric", label: "Indeks Asap", unit: "indeks" },
   kualitasUdara: { key: "ppm_co", label: "Kualitas Udara (CO)", unit: "ppm" },
 };
 
@@ -205,6 +149,7 @@ export const ATURAN_MAMDANI = {
     hangat: { type: "tri", points: [25.9, 26.55, 27.2], label: "Hangat" },
     panas: { type: "trap", points: [27.2, 27.7, 40, 40], label: "Panas" },
   },
+
   kelembapan: {
     terlaluKering: {
       type: "trap",
@@ -218,6 +163,7 @@ export const ATURAN_MAMDANI = {
       label: "Terlalu Lembab",
     },
   },
+
   kebisingan: {
     nyaman: { type: "trap", points: [0, 0, 40, 45], label: "Nyaman" },
     kebisinganRendah: {
@@ -231,6 +177,7 @@ export const ATURAN_MAMDANI = {
       label: "Kebisingan Tinggi",
     },
   },
+
   asap: {
     nyaman: { type: "trap", points: [0, 0, 8, 10], label: "Nyaman" },
     terdeteksiAsap: {
@@ -239,6 +186,7 @@ export const ATURAN_MAMDANI = {
       label: "Terdeteksi Asap",
     },
   },
+
   co: {
     nyaman: { type: "trap", points: [0, 0, 5, 6], label: "Nyaman" },
     coRendah: { type: "tri", points: [6, 7.5, 9], label: "CO Rendah" },
@@ -266,20 +214,24 @@ export const RULE_PARAMETER = {
     hangat: "kurangNyaman",
     panas: "tidakNyaman",
   },
+
   kelembapan: {
     terlaluKering: "kurangNyaman",
     nyaman: "nyaman",
     terlaluLembab: "kurangNyaman",
   },
+
   kebisingan: {
     nyaman: "nyaman",
     kebisinganRendah: "kurangNyaman",
     kebisinganTinggi: "tidakNyaman",
   },
+
   asap: {
     nyaman: "nyaman",
     terdeteksiAsap: "tidakNyaman",
   },
+
   co: {
     nyaman: "nyaman",
     coRendah: "kurangNyaman",

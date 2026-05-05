@@ -7,6 +7,7 @@ function formatWaktuText(date) {
   const jam = String(date.getHours()).padStart(2, "0");
   const menit = String(date.getMinutes()).padStart(2, "0");
   const detik = String(date.getSeconds()).padStart(2, "0");
+
   return `${tahun}-${bulan}-${hari} ${jam}:${menit}:${detik}`;
 }
 
@@ -26,13 +27,13 @@ function hashBagian(id) {
 
 function ambilProfilBagian(bagian) {
   const nomor = bagian?.nomor || 1;
-  const lantai = bagian?.lantai || 1;
+  const lantai = bagian?.lantai || 2;
   const hash = hashBagian(bagian?.id || "bagian");
 
   return {
-    suhu: 23.1 + (lantai - 1) * 0.5 + (nomor % 4) * 0.28 + (hash % 5) * 0.06,
-    kelembapan: 48 + (nomor % 5) * 1.4 + (lantai - 1) * 1.1,
-    suara: 35 + (nomor % 6) * 1.5 + (lantai - 1) * 1.2,
+    suhu: 23.4 + (lantai - 2) * 0.4 + (nomor % 4) * 0.3 + (hash % 5) * 0.05,
+    kelembapan: 48 + (nomor % 5) * 1.3 + (lantai - 2) * 0.8,
+    suara: 35 + (nomor % 6) * 1.6 + (lantai - 2) * 1.0,
     asap: 1.4 + (nomor % 3) * 0.35,
     co: 3.0 + (nomor % 4) * 0.32,
   };
@@ -86,9 +87,9 @@ export function buatDataDummyRealtime(
   const mq2Delta = Math.round(asapMetric * 10);
   const mq7Adc = Math.round(1650 + ppmCO * 38 + noise(20));
 
-  const data = {
+  return {
     bagian_id: bagian.id,
-    ruang_id: bagian.id, // kompatibilitas dengan kode lama
+    ruang_id: bagian.id,
     node_id: `dummy_${bagian.id}`,
     sumber_data: "dummy_realtime",
 
@@ -112,7 +113,6 @@ export function buatDataDummyRealtime(
     kalibrasi_mq7_r0: 1,
     kalibrasi_dht_temp_offset: 0,
     kalibrasi_dht_hum_offset: 0,
-
     status_node: "online",
 
     qos: {
@@ -121,8 +121,6 @@ export function buatDataDummyRealtime(
       sample_interval_ms: sampleIntervalMs,
     },
   };
-
-  return data;
 }
 
 // ======================================================
@@ -143,6 +141,7 @@ function generate1YearData(bagian) {
   ) {
     const currentDate = new Date(date);
     const seq = id + 1;
+
     hasil[`id_${id++}`] = buatDataDummyRealtime(
       bagian,
       seq,

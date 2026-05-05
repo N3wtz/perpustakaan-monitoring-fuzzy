@@ -193,10 +193,11 @@ function PanelStatusArea({ rooms, ruangAktif, setRuangAktif }) {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
-            Peta Bagian Perpustakaan
+            Peta Bagian Perpustakaan - Lantai 2
           </h2>
           <p className="text-sm text-slate-500">
-            Pilih bagian untuk melihat data sensor dan hasil fuzzy terbaru.
+            Tampilan hanya menampilkan lantai 2: Bagian 1, 3, 6, dan 8 adalah
+            ESP32 asli; Bagian 2, 4, 5, dan 7 adalah dummy realtime.
           </p>
         </div>
       </div>
@@ -315,7 +316,8 @@ export default function HalamanDashboard({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              Data Sensor {bagianAktif?.label || ruangAktif}
+              Data Sensor{" "}
+              {bagianAktif?.labelLengkap || bagianAktif?.label || ruangAktif}
             </h2>
             <p className="text-sm text-slate-500">
               Teks pada kartu menunjukkan kategori input fuzzy. Warna kartu

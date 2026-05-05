@@ -17,18 +17,21 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
 
     if (!bolehJalan) return undefined;
 
-    // Penting: hanya bagian dummy. Bagian ESP32 asli tidak ditulis oleh hook ini.
+    // Penting: hanya bagian dummy lantai 2.
+    // Bagian ESP32 asli lantai 2 bagian 1, 3, 6, dan 8 tidak ditulis hook ini.
     const daftarDummy = TATA_LETAK_BAGIAN.filter(
       (bagian) => bagian.sumber === "dummy",
     );
+
     if (!daftarDummy.length) return undefined;
 
     const db = ambilDatabaseFirebase();
     let sedangKirimLatest = false;
     let sedangKirimHistory = false;
+    let sudahStop = false;
 
     async function kirimLatestDummy() {
-      if (sedangKirimLatest) return;
+      if (sedangKirimLatest || sudahStop) return;
       sedangKirimLatest = true;
 
       try {
@@ -65,7 +68,7 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
     }
 
     async function kirimHistoryDummy() {
-      if (sedangKirimHistory) return;
+      if (sedangKirimHistory || sudahStop) return;
       sedangKirimHistory = true;
 
       try {
@@ -91,8 +94,11 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
       }
     }
 
-    // Dibuat seperti ESP32: tidak menulis terus-menerus setiap render,
-    // tetapi menunggu interval. Latest masuk tiap 5 detik, history tiap 1 menit.
+    // Kirim sekali di awal supaya 4 dummy langsung muncul setelah login.
+    kirimLatestDummy().catch((error) =>
+      console.error("Gagal kirim latest dummy:", error),
+    );
+
     const latestTimer = setInterval(() => {
       kirimLatestDummy().catch((error) =>
         console.error("Gagal kirim latest dummy:", error),
@@ -106,6 +112,7 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
     }, KONFIG_APP.dummyHistoryIntervalMs);
 
     return () => {
+      sudahStop = true;
       clearInterval(latestTimer);
       clearInterval(historyTimer);
     };

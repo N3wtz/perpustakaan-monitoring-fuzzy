@@ -7,15 +7,9 @@ import {
   TATA_LETAK_BAGIAN,
 } from "../fuzzy/aturanFuzzy";
 
-// ======================================================
-// KONFIGURASI
-// ======================================================
-const MAX_DELAY_MS = 10000; // delay > 10 detik diabaikan
+const MAX_DELAY_MS = 10000;
 const MIN_VALID_SEQ = 1;
 
-// ======================================================
-// HELPER FORMAT
-// ======================================================
 function parseAngka(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
@@ -49,17 +43,17 @@ function rataRata(arr) {
 
 function median(arr) {
   if (!arr.length) return 0;
+
   const sorted = [...arr].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
+
   if (sorted.length % 2 === 0) return (sorted[mid - 1] + sorted[mid]) / 2;
   return sorted[mid];
 }
 
-// ======================================================
-// KATEGORI QOS
-// ======================================================
 function kategoriDelay(delayMs) {
   if (!Number.isFinite(delayMs)) return "-";
+
   const detik = delayMs / 1000;
   if (detik < 2) return "Sangat Baik";
   if (detik <= 4) return "Baik";
@@ -98,9 +92,6 @@ function statusSinyalRssi(rssi) {
   return "Lemah";
 }
 
-// ======================================================
-// UI
-// ======================================================
 function KartuKontrol({
   durasiMenit,
   setDurasiMenit,
@@ -110,12 +101,13 @@ function KartuKontrol({
   resetPengukuran,
 }) {
   return (
-    <KartuUmum className="p-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <KartuUmum className="p-5">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">QoS</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-500">
-            Pengukuran ini hanya menghitung 4 sensor ESP32 asli. Data dummy
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            Pengukuran ini hanya menghitung 4 sensor ESP32 asli di lantai 2,
+            yaitu Bagian 1, Bagian 3, Bagian 6, dan Bagian 8. Data dummy
             realtime tidak ikut dihitung.
           </p>
         </div>
@@ -139,7 +131,7 @@ function KartuKontrol({
             type="button"
             onClick={mulaiPengukuran}
             disabled={statusSesi === "running"}
-            className="flex h-[42px] items-center gap-2 rounded-xl bg-blue-500 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex h-[42px] items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             <Play className="h-4 w-4" />
             {statusSesi === "running" ? "Sedang Mengukur" : "Mulai"}
@@ -148,7 +140,7 @@ function KartuKontrol({
           <button
             type="button"
             onClick={resetPengukuran}
-            className="flex h-[42px] items-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-200"
+            className="flex h-[42px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
           >
             <RotateCcw className="h-4 w-4" />
             Reset
@@ -156,8 +148,8 @@ function KartuKontrol({
         </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-3 text-sm">
-        <div className="rounded-full bg-slate-100 px-4 py-2 font-semibold text-slate-600">
+      <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-600">
+        <div className="rounded-2xl bg-slate-100 px-4 py-2">
           Status:{" "}
           {statusSesi === "idle"
             ? "Belum Mulai"
@@ -165,7 +157,8 @@ function KartuKontrol({
               ? "Sedang Mengukur"
               : "Selesai"}
         </div>
-        <div className="rounded-full bg-slate-100 px-4 py-2 font-semibold text-slate-600">
+        <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2">
+          <Timer className="h-4 w-4" />
           Sisa Waktu: {formatWaktuDetik(sisaDetik)}
         </div>
       </div>
@@ -181,23 +174,27 @@ function BarisMetrik({
   kategori,
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 border-t border-slate-100 py-3 text-sm md:grid-cols-5">
-      <div className="font-semibold text-slate-700">{label}</div>
-      <div>
-        <div className="text-xs text-slate-400">Realtime</div>
-        <div className="font-semibold text-slate-700">{realtime}</div>
-      </div>
-      <div>
-        <div className="text-xs text-slate-400">Rata-rata</div>
-        <div className="font-semibold text-slate-700">{avg}</div>
-      </div>
-      <div>
-        <div className="text-xs text-slate-400">Median</div>
-        <div className="font-semibold text-slate-700">{medianValue}</div>
-      </div>
-      <div>
-        <div className="text-xs text-slate-400">Kategori</div>
-        <div className={`font-bold ${kelasKategori(kategori)}`}>{kategori}</div>
+    <div className="rounded-2xl border border-slate-100 bg-white p-4">
+      <div className="mb-3 text-sm font-semibold text-slate-700">{label}</div>
+      <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+        <div>
+          <div className="text-xs text-slate-400">Realtime</div>
+          <div className="mt-1 font-semibold text-slate-800">{realtime}</div>
+        </div>
+        <div>
+          <div className="text-xs text-slate-400">Rata-rata</div>
+          <div className="mt-1 font-semibold text-slate-800">{avg}</div>
+        </div>
+        <div>
+          <div className="text-xs text-slate-400">Median</div>
+          <div className="mt-1 font-semibold text-slate-800">{medianValue}</div>
+        </div>
+        <div>
+          <div className="text-xs text-slate-400">Kategori</div>
+          <div className={`mt-1 font-semibold ${kelasKategori(kategori)}`}>
+            {kategori}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -211,9 +208,9 @@ function KartuQosBagian({ bagian, metrics, statusSesi, room }) {
 
   return (
     <KartuUmum className="p-5">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-xl font-bold text-slate-800">
+          <h3 className="text-lg font-semibold text-slate-900">
             {bagian.labelLengkap}
           </h3>
           <p className="mt-1 text-sm text-slate-500">
@@ -223,9 +220,9 @@ function KartuQosBagian({ bagian, metrics, statusSesi, room }) {
         </div>
 
         <div
-          className={`rounded-full px-3 py-1 text-xs font-bold ${
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${
             online
-              ? "bg-green-100 text-green-600"
+              ? "bg-emerald-100 text-emerald-700"
               : "bg-slate-100 text-slate-500"
           }`}
         >
@@ -233,50 +230,51 @@ function KartuQosBagian({ bagian, metrics, statusSesi, room }) {
         </div>
       </div>
 
-      <div className="mb-3 grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-        <div className="rounded-xl bg-slate-50 p-3">
+      <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="rounded-2xl bg-slate-50 p-4">
           <div className="text-xs text-slate-400">Paket valid</div>
-          <div className="mt-1 text-lg font-bold text-slate-800">
+          <div className="mt-1 text-xl font-semibold text-slate-900">
             {metrics?.receivedCount || 0}
           </div>
         </div>
-        <div className="rounded-xl bg-slate-50 p-3">
+        <div className="rounded-2xl bg-slate-50 p-4">
           <div className="text-xs text-slate-400">Paket hilang</div>
-          <div className="mt-1 text-lg font-bold text-slate-800">
+          <div className="mt-1 text-xl font-semibold text-slate-900">
             {metrics?.lostCount || 0}
           </div>
         </div>
-        <div className="rounded-xl bg-slate-50 p-3">
+        <div className="rounded-2xl bg-slate-50 p-4">
           <div className="text-xs text-slate-400">Paket diabaikan</div>
-          <div className="mt-1 text-lg font-bold text-slate-800">
+          <div className="mt-1 text-xl font-semibold text-slate-900">
             {metrics?.ignoredCount || 0}
           </div>
         </div>
-        <div className="rounded-xl bg-slate-50 p-3">
+        <div className="rounded-2xl bg-slate-50 p-4">
           <div className="text-xs text-slate-400">Seq terakhir</div>
-          <div className="mt-1 text-lg font-bold text-slate-800">
+          <div className="mt-1 text-xl font-semibold text-slate-900">
             {metrics?.lastSeq || 0}
           </div>
         </div>
       </div>
 
-      <BarisMetrik
-        label="Delay End-to-End"
-        realtime={formatMs(metrics?.latestDelayMs)}
-        rataRata={formatDetik(metrics?.avgDelayMs)}
-        medianValue={formatDetik(metrics?.medianDelayMs)}
-        kategori={kategoriDelayText}
-      />
+      <div className="mt-5 space-y-3">
+        <BarisMetrik
+          label="Delay end-to-end"
+          realtime={formatMs(metrics?.latestDelayMs)}
+          rataRata={formatDetik(metrics?.avgDelayMs)}
+          medianValue={formatDetik(metrics?.medianDelayMs)}
+          kategori={kategoriDelayText}
+        />
+        <BarisMetrik
+          label="Packet loss"
+          realtime={formatPercent(metrics?.packetLossPct)}
+          rataRata={formatPercent(metrics?.packetLossPct)}
+          medianValue="-"
+          kategori={kategoriLossText}
+        />
+      </div>
 
-      <BarisMetrik
-        label="Packet Loss"
-        realtime={formatPercent(metrics?.packetLossPct)}
-        rataRata={formatPercent(metrics?.packetLossPct)}
-        medianValue="-"
-        kategori={kategoriLossText}
-      />
-
-      <p className="mt-3 text-xs text-slate-400">
+      <p className="mt-4 text-xs leading-5 text-slate-500">
         {statusSesi === "idle" && "Belum ada sesi pengukuran."}
         {statusSesi === "running" && "Sesi pengukuran sedang berjalan."}
         {statusSesi === "finished" &&
@@ -286,9 +284,6 @@ function KartuQosBagian({ bagian, metrics, statusSesi, room }) {
   );
 }
 
-// ======================================================
-// HALAMAN QOS
-// ======================================================
 export default function HalamanQoS({ rooms }) {
   const [durasiMenit, setDurasiMenit] = useState("1");
   const [statusSesi, setStatusSesi] = useState("idle");
@@ -367,14 +362,11 @@ export default function HalamanQoS({ rooms }) {
       if (sentAtMs < startedAtMs) return;
 
       const prev = trackerRef.current[roomId];
-
-      // Paket duplikat tidak dihitung.
       if (prev?.lastSeq === seq) return;
 
       const nowMs = Date.now();
       const delayMs = nowMs - sentAtMs;
 
-      // Delay tidak valid atau terlalu besar diabaikan.
       if (!Number.isFinite(delayMs) || delayMs < 0 || delayMs > MAX_DELAY_MS) {
         const nextIgnored = {
           ...(prev || {}),
@@ -423,7 +415,7 @@ export default function HalamanQoS({ rooms }) {
   }, [rooms, statusSesi, startedAtMs, daftarSensorQos]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <KartuKontrol
         durasiMenit={durasiMenit}
         setDurasiMenit={setDurasiMenit}
@@ -434,32 +426,26 @@ export default function HalamanQoS({ rooms }) {
       />
 
       <KartuUmum className="p-5">
-        <div className="flex items-start gap-3 text-sm text-slate-500">
-          <div className="rounded-full bg-blue-100 p-2 text-blue-600">
-            <Timer className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="font-semibold text-slate-700">
-              Catatan Pengukuran
-            </div>
-            <p className="mt-1">
-              Delay dihitung dari selisih waktu antara data dikirim oleh ESP32
-              hingga data diterima atau ditampilkan pada website. Sementara itu,
-              packet loss dihitung berdasarkan adanya loncatan nomor sequence
-              pada paket data latest yang dikirim oleh ESP32.
-            </p>
-          </div>
-        </div>
+        <h2 className="text-lg font-semibold text-slate-900">
+          Catatan Pengukuran
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Delay dihitung dari selisih waktu antara data dikirim oleh ESP32
+          hingga data diterima atau ditampilkan pada website. Packet loss
+          dihitung berdasarkan loncatan nomor sequence pada paket data latest
+          yang dikirim oleh ESP32. Data dummy realtime tidak dihitung agar hasil
+          QoS hanya mewakili perangkat ESP32 asli.
+        </p>
       </KartuUmum>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <div className="grid gap-5 xl:grid-cols-2">
         {daftarSensorQos.map((bagian) => (
           <KartuQosBagian
             key={bagian.id}
             bagian={bagian}
-            room={rooms?.[bagian.id]}
-            metrics={metricsByRoom[bagian.id]}
+            metrics={metricsByRoom[bagian.id] || {}}
             statusSesi={statusSesi}
+            room={rooms?.[bagian.id]}
           />
         ))}
       </div>

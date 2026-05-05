@@ -2,7 +2,7 @@ export const DAFTAR_QOS_SENSOR = [
   { key: "suhu", label: "Suhu", unit: "°C" },
   { key: "kelembapan", label: "Kelembapan", unit: "%" },
   { key: "kebisingan", label: "Kebisingan", unit: "dB" },
-  { key: "asap", label: "Asap", unit: "ppm" },
+  { key: "asap", label: "Indeks Asap", unit: "indeks" },
   { key: "kualitasUdara", label: "Kualitas Udara (CO)", unit: "ppm" },
 ];
 
