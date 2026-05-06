@@ -3,7 +3,7 @@ export const KONFIG_NOTIFIKASI = {
   telegramAktifDariKode: true,
 
   // kirim tiap 5 kali tidak nyaman beruntun
-  jumlahBurukBerturutTurut: 5,
+  jumlahBurukBerturutTurut: 3,
 
   // path firebase
   pathAlerts: "alerts",

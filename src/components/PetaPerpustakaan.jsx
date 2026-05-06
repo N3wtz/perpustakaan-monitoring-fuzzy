@@ -1,12 +1,20 @@
 function getStatusBagian(state) {
-  if (!state?.latest || !state?.fuzzy) return "Belum ada data";
+  if (!state?.latest) return "Offline";
+  if (state?.online === false) return "Offline";
+  if (!state?.fuzzy) return "Belum ada data";
+
   return state.fuzzy.kenyamananTotal || "Belum ada data";
 }
 
 function getToneStatus(status) {
-  if (!status || status === "Belum ada data") return "kosong";
+  if (!status || status === "Belum ada data" || status === "Belum Ada Data") {
+    return "kosong";
+  }
+
+  if (status === "Offline") return "offline";
   if (status === "Nyaman") return "baik";
   if (status === "Kurang Nyaman") return "peringatan";
+
   return "bahaya";
 }
 
@@ -58,8 +66,9 @@ function getKelasPeta(status, aktif) {
 }
 
 function singkatStatus(status) {
-  if (status === "Belum ada data") return "Belum ada data";
-  return status || "Belum ada data";
+  if (!status) return "Belum ada data";
+  if (status === "Belum Ada Data") return "Belum ada data";
+  return status;
 }
 
 export default function PetaPerpustakaan({
@@ -69,7 +78,7 @@ export default function PetaPerpustakaan({
   setBagianAktif,
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {daftarBagian.map((bagian) => {
         const state = rooms?.[bagian.id];
         const status = getStatusBagian(state);
@@ -81,29 +90,27 @@ export default function PetaPerpustakaan({
             key={bagian.id}
             type="button"
             onClick={() => setBagianAktif(bagian.id)}
-            className={`relative h-[150px] overflow-hidden rounded-[22px] border transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${kelas.kartu}`}
+            className={`relative h-[118px] overflow-hidden rounded-[20px] border transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${kelas.kartu}`}
           >
-            <div className="flex h-full flex-col justify-between p-4 text-left">
-              <div>
+            <div
+              className={`absolute left-1/2 top-3 flex h-[30px] min-w-[82px] -translate-x-1/2 items-center justify-center rounded-full border bg-white px-3 text-center text-[12px] font-semibold leading-none shadow-sm ${kelas.label}`}
+            >
+              {bagian.label}
+            </div>
+
+            <div className="absolute left-1/2 top-[52px] flex h-[40px] -translate-x-1/2 items-end justify-center gap-3">
+              {Array.from({ length: 2 }).map((_, index) => (
                 <div
-                  className={`inline-flex rounded-full border bg-white/70 px-3 py-1 text-xs font-semibold ${kelas.label}`}
-                >
-                  {bagian.label}
-                </div>
-              </div>
+                  key={index}
+                  className={`h-[40px] w-[15px] rounded-md border ${kelas.bar}`}
+                />
+              ))}
+            </div>
 
-              <div className="space-y-2">
-                {Array.from({ length: 2 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className={`h-3 rounded-full border ${kelas.bar}`}
-                  />
-                ))}
-              </div>
-
-              <div className={`text-xs font-semibold ${kelas.status}`}>
-                {singkatStatus(status)}
-              </div>
+            <div
+              className={`absolute bottom-3 left-2 right-2 truncate text-center text-[11px] font-semibold leading-none ${kelas.status}`}
+            >
+              {singkatStatus(status)}
             </div>
           </button>
         );

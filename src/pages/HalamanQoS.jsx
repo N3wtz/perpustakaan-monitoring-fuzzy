@@ -100,66 +100,74 @@ function KartuKontrol({
   mulaiPengukuran,
   resetPengukuran,
 }) {
+  const labelStatus =
+    statusSesi === "idle"
+      ? "Belum Mulai"
+      : statusSesi === "running"
+        ? "Sedang Mengukur"
+        : "Selesai";
+
   return (
     <KartuUmum className="p-5">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <div className="grid gap-5 xl:grid-cols-[1fr_380px] xl:items-start">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">QoS</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-            Pengukuran ini hanya menghitung 4 sensor ESP32 asli di lantai 2,
-            yaitu Bagian 1, Bagian 3, Bagian 6, dan Bagian 8. Data dummy
-            realtime tidak ikut dihitung.
+          <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+            QoS
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-500">
+            Pengukuran hanya menghitung 4 sensor ESP32 asli di lantai 2, yaitu
+            Bagian 1, Bagian 3, Bagian 6, dan Bagian 8. Data dummy realtime
+            tidak ikut dihitung.
           </p>
-        </div>
 
-        <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <label className="text-xs font-medium text-slate-500">
-              Durasi pengukuran (menit)
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={durasiMenit}
-              onChange={(e) => setDurasiMenit(e.target.value)}
-              className="mt-2 h-[42px] w-[150px] rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-blue-400"
-              placeholder="Contoh: 1"
-            />
+          <div className="mt-4 flex flex-wrap gap-3">
+            <div className="rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-700">
+              Status: {labelStatus}
+            </div>
+
+            <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-700">
+              <Timer className="h-4 w-4" />
+              Sisa Waktu: {formatWaktuDetik(sisaDetik)}
+            </div>
           </div>
-
-          <button
-            type="button"
-            onClick={mulaiPengukuran}
-            disabled={statusSesi === "running"}
-            className="flex h-[42px] items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-          >
-            <Play className="h-4 w-4" />
-            {statusSesi === "running" ? "Sedang Mengukur" : "Mulai"}
-          </button>
-
-          <button
-            type="button"
-            onClick={resetPengukuran}
-            className="flex h-[42px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Reset
-          </button>
         </div>
-      </div>
 
-      <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-600">
-        <div className="rounded-2xl bg-slate-100 px-4 py-2">
-          Status:{" "}
-          {statusSesi === "idle"
-            ? "Belum Mulai"
-            : statusSesi === "running"
-              ? "Sedang Mengukur"
-              : "Selesai"}
-        </div>
-        <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2">
-          <Timer className="h-4 w-4" />
-          Sisa Waktu: {formatWaktuDetik(sisaDetik)}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-600">
+                Durasi pengukuran (menit)
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={durasiMenit}
+                onChange={(e) => setDurasiMenit(e.target.value)}
+                className="h-[42px] w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-blue-400"
+                placeholder="1"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={mulaiPengukuran}
+              disabled={statusSesi === "running"}
+              className="flex h-[42px] items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              <Play className="h-4 w-4" />
+              {statusSesi === "running" ? "Mengukur" : "Mulai"}
+            </button>
+
+            <button
+              type="button"
+              onClick={resetPengukuran}
+              className="flex h-[42px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset
+            </button>
+          </div>
         </div>
       </div>
     </KartuUmum>
@@ -176,19 +184,23 @@ function BarisMetrik({
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-4">
       <div className="mb-3 text-sm font-semibold text-slate-700">{label}</div>
+
       <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
         <div>
           <div className="text-xs text-slate-400">Realtime</div>
           <div className="mt-1 font-semibold text-slate-800">{realtime}</div>
         </div>
+
         <div>
           <div className="text-xs text-slate-400">Rata-rata</div>
           <div className="mt-1 font-semibold text-slate-800">{avg}</div>
         </div>
+
         <div>
           <div className="text-xs text-slate-400">Median</div>
           <div className="mt-1 font-semibold text-slate-800">{medianValue}</div>
         </div>
+
         <div>
           <div className="text-xs text-slate-400">Kategori</div>
           <div className={`mt-1 font-semibold ${kelasKategori(kategori)}`}>
@@ -237,18 +249,21 @@ function KartuQosBagian({ bagian, metrics, statusSesi, room }) {
             {metrics?.receivedCount || 0}
           </div>
         </div>
+
         <div className="rounded-2xl bg-slate-50 p-4">
           <div className="text-xs text-slate-400">Paket hilang</div>
           <div className="mt-1 text-xl font-semibold text-slate-900">
             {metrics?.lostCount || 0}
           </div>
         </div>
+
         <div className="rounded-2xl bg-slate-50 p-4">
           <div className="text-xs text-slate-400">Paket diabaikan</div>
           <div className="mt-1 text-xl font-semibold text-slate-900">
             {metrics?.ignoredCount || 0}
           </div>
         </div>
+
         <div className="rounded-2xl bg-slate-50 p-4">
           <div className="text-xs text-slate-400">Seq terakhir</div>
           <div className="mt-1 text-xl font-semibold text-slate-900">
@@ -265,6 +280,7 @@ function KartuQosBagian({ bagian, metrics, statusSesi, room }) {
           medianValue={formatDetik(metrics?.medianDelayMs)}
           kategori={kategoriDelayText}
         />
+
         <BarisMetrik
           label="Packet loss"
           realtime={formatPercent(metrics?.packetLossPct)}
@@ -317,6 +333,7 @@ export default function HalamanQoS({ rooms }) {
 
   function mulaiPengukuran() {
     const sekarang = Date.now();
+
     trackerRef.current = {};
     setMetricsByRoom({});
     setStartedAtMs(sekarang);
@@ -331,6 +348,7 @@ export default function HalamanQoS({ rooms }) {
     const timer = setInterval(() => {
       const sekarang = Date.now();
       const sisa = Math.max(0, Math.ceil((endsAtMs - sekarang) / 1000));
+
       setSisaDetik(sisa);
 
       if (sekarang >= endsAtMs) {
@@ -350,7 +368,6 @@ export default function HalamanQoS({ rooms }) {
       const room = rooms?.[roomId];
       const latest = room?.latest || {};
 
-      // Guard utama: QoS hanya dari ESP32 asli, bukan dummy.
       if (!DAFTAR_BAGIAN_ESP32_ASLI.includes(roomId)) return;
       if (latest?.sumber_data && latest.sumber_data !== "esp32") return;
 
@@ -375,6 +392,7 @@ export default function HalamanQoS({ rooms }) {
         };
 
         trackerRef.current[roomId] = nextIgnored;
+
         setMetricsByRoom((prevState) => ({
           ...prevState,
           [roomId]: {
@@ -383,11 +401,13 @@ export default function HalamanQoS({ rooms }) {
             lastSeq: nextIgnored.lastSeq,
           },
         }));
+
         return;
       }
 
       const lostNow =
         prev && seq > prev.lastSeq + 1 ? seq - prev.lastSeq - 1 : 0;
+
       const delaySamples = [...(prev?.delaySamples || []), delayMs];
       const receivedCount = (prev?.receivedCount || 0) + 1;
       const lostCount = (prev?.lostCount || 0) + lostNow;
@@ -410,7 +430,10 @@ export default function HalamanQoS({ rooms }) {
       };
 
       trackerRef.current[roomId] = nextState;
-      setMetricsByRoom((prevState) => ({ ...prevState, [roomId]: nextState }));
+      setMetricsByRoom((prevState) => ({
+        ...prevState,
+        [roomId]: nextState,
+      }));
     });
   }, [rooms, statusSesi, startedAtMs, daftarSensorQos]);
 
