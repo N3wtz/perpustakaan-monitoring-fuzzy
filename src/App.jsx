@@ -49,7 +49,7 @@ function useKenyamananPerpustakaan(rooms) {
 function IsiAplikasi() {
   const { user, loadingAuth } = useAuth();
   const [page, setPage] = useState("dashboard");
-  const [ruangAktif, setRuangAktif] = useState("bagian_l1_1");
+  const [ruangAktif, setRuangAktif] = useState("bagian_l2_1");
 
   const sudahLogin = !!user;
 
@@ -104,6 +104,7 @@ function IsiAplikasi() {
         rooms={rooms}
         ruangAktif={ruangAktif}
         setRuangAktif={setRuangAktif}
+        setPage={setPage}
         statusPerpustakaan={statusPerpustakaan}
       />
     );

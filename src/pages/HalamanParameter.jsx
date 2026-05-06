@@ -41,15 +41,6 @@ const KEY_FUZZY_PARAMETER = {
   kualitasUdara: "co",
 };
 
-const LABEL_PARAMETER = {
-  suhu: "Suhu",
-  kelembapan: "Kelembapan",
-  kebisingan: "Kebisingan",
-  asap: "Indeks Asap",
-  kualitasUdara: "Karbon Monoksida",
-  kenyamananTotal: "Kenyamanan Total",
-};
-
 function metaHalaman(page) {
   if (page === "kenyamananTotal") {
     return META_KENYAMANAN_TOTAL;
@@ -161,14 +152,14 @@ function buatRingkasanFilter(periode, filterTanggal) {
   return `${filterTanggal.tanggalMulai} sampai ${filterTanggal.tanggalSelesai}`;
 }
 
-function buatNamaFile(page, labelBagian, periode, filterTanggal) {
+function buatNamaFile(labelBagian, periode, filterTanggal) {
   const bagian = labelBagian.toLowerCase().replace(/\s+/g, "_");
   const rentang = buatRingkasanFilter(periode, filterTanggal)
     .toLowerCase()
     .replace(/\s+/g, "_")
     .replace(/[^a-z0-9_\-]/g, "");
 
-  return `export_${page}_${bagian}_${rentang}.csv`;
+  return `export_${bagian}_${rentang}.csv`;
 }
 
 function dataFuzzyAktif(fuzzy, page) {
@@ -179,23 +170,9 @@ function dataFuzzyAktif(fuzzy, page) {
   return fuzzy?.[key] || null;
 }
 
-function nilaiParameterAktif(record, meta, page, fuzzy) {
-  if (page === "kenyamananTotal") return formatAngka(fuzzy?.skorTotal);
-  return formatAngka(record?.[meta.key]);
-}
-
-function buatBarisExport(
-  riwayat,
-  labelBagian,
-  page,
-  meta,
-  periode,
-  filterTanggal,
-) {
+function buatBarisExport(riwayat, labelBagian, periode, filterTanggal) {
   return (riwayat || []).map((item, index) => {
     const fuzzy = hitungFuzzyAman(item) || {};
-    const aktif = dataFuzzyAktif(fuzzy, page);
-
     return {
       No: index + 1,
       Tanggal: formatTanggal(item.timestamp),
@@ -231,19 +208,6 @@ function buatBarisExport(
 
       "Kenyamanan Total": fuzzy?.kenyamananTotal || "-",
       "Skor Fuzzy Total": formatAngka(fuzzy?.skorTotal),
-
-      "Parameter Aktif": LABEL_PARAMETER[page] || meta.label,
-      "Nilai Parameter Aktif": nilaiParameterAktif(item, meta, page, fuzzy),
-      "Kategori Input Aktif":
-        page === "kenyamananTotal" ? "-" : aktif?.label || "-",
-      "Kenyamanan Fuzzy Aktif":
-        page === "kenyamananTotal"
-          ? fuzzy?.kenyamananTotal || "-"
-          : aktif?.kenyamanan || "-",
-      "Skor Fuzzy Aktif":
-        page === "kenyamananTotal"
-          ? formatAngka(fuzzy?.skorTotal)
-          : formatAngka(aktif?.skor),
     };
   });
 }
@@ -326,16 +290,11 @@ export default function HalamanParameter({
     const rows = buatBarisExport(
       riwayatTerfilter,
       labelBagian,
-      page,
-      meta,
       periode,
       filterTanggal,
     );
 
-    downloadCsvExcel(
-      rows,
-      buatNamaFile(page, labelBagian, periode, filterTanggal),
-    );
+    downloadCsvExcel(rows, buatNamaFile(labelBagian, periode, filterTanggal));
   }
 
   return (
@@ -347,7 +306,8 @@ export default function HalamanParameter({
           </h1>
           <p className="mt-2 text-sm text-slate-500">
             Data grafik dan export mengikuti bagian, periode, serta tanggal yang
-            sedang dipilih.
+            sedang dipilih. Export selalu berisi seluruh parameter dan hasil
+            fuzzy lengkap.
           </p>
         </div>
       </div>
@@ -479,8 +439,8 @@ export default function HalamanParameter({
           </div>
 
           <div className="rounded-2xl bg-slate-100 px-4 py-2 text-xs text-slate-600">
-            Export berisi data sensor, kategori input fuzzy, output kenyamanan,
-            dan skor fuzzy.
+            Export selalu berisi seluruh data sensor, kategori input fuzzy,
+            output kenyamanan, dan skor fuzzy lengkap untuk semua parameter.
           </div>
         </div>
 

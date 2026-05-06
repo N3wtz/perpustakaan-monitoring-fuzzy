@@ -1,15 +1,23 @@
 import KartuUmum from "./KartuUmum";
 
+function formatNilai(nilai) {
+  const angka = Number(nilai);
+  if (!Number.isFinite(angka)) return "-";
+  return angka.toFixed(0);
+}
+
 export default function KartuStatistik({ judul, nilai, unit }) {
   return (
-    <KartuUmum className="p-5">
+    <KartuUmum className="h-full p-5">
       <div className="text-[18px] text-slate-600">{judul}</div>
-      <div className="mt-7 flex items-end gap-3">
-        <div className="h-3 w-3 rounded-full bg-blue-500" />
-        <div className="text-[56px] font-semibold leading-none tracking-tight">
-          {Number.isFinite(nilai) ? nilai.toFixed(0) : 0}
-          {unit}
+
+      <div className="mt-7 flex items-end gap-2 leading-none">
+        <div className="text-[48px] font-semibold tracking-tight text-slate-900">
+          {formatNilai(nilai)}
         </div>
+        {unit ? (
+          <div className="pb-1 text-2xl text-slate-500">{unit}</div>
+        ) : null}
       </div>
     </KartuUmum>
   );

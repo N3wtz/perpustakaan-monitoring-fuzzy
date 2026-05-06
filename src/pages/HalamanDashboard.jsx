@@ -147,12 +147,17 @@ function KartuParameter({
   labelKategori,
   outputKenyamanan,
   rentang,
+  onClick,
 }) {
   const kelas = getKelasStatus(outputKenyamanan);
   const tidakAdaData = nilai === "-";
 
   return (
-    <div className={`rounded-3xl border p-5 ${kelas.bg} ${kelas.border}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full rounded-3xl border p-5 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${kelas.bg} ${kelas.border}`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-sm text-slate-500">{judul}</div>
@@ -183,7 +188,7 @@ function KartuParameter({
       </div>
 
       <div className="mt-4 text-xs text-slate-500">Rentang aman: {rentang}</div>
-    </div>
+    </button>
   );
 }
 
@@ -242,6 +247,7 @@ export default function HalamanDashboard({
   rooms,
   ruangAktif,
   setRuangAktif,
+  setPage,
   now,
   statusPerpustakaan,
 }) {
@@ -260,6 +266,7 @@ export default function HalamanDashboard({
       labelKategori: labelInput(fuzzy?.suhu),
       outputKenyamanan: kenyamanan(fuzzy?.suhu),
       rentang: "23–26 °C",
+      onClick: () => setPage?.("suhu"),
     },
     {
       judul: "Kelembapan",
@@ -269,6 +276,7 @@ export default function HalamanDashboard({
       labelKategori: labelInput(fuzzy?.kelembapan),
       outputKenyamanan: kenyamanan(fuzzy?.kelembapan),
       rentang: "40–60 %",
+      onClick: () => setPage?.("kelembapan"),
     },
     {
       judul: "Kebisingan",
@@ -278,6 +286,7 @@ export default function HalamanDashboard({
       labelKategori: labelInput(fuzzy?.kebisingan),
       outputKenyamanan: kenyamanan(fuzzy?.kebisingan),
       rentang: "< 55 dB",
+      onClick: () => setPage?.("kebisingan"),
     },
     {
       judul: "Indeks Asap",
@@ -287,6 +296,7 @@ export default function HalamanDashboard({
       labelKategori: labelInput(fuzzy?.asap),
       outputKenyamanan: kenyamanan(fuzzy?.asap),
       rentang: "< 10 indeks",
+      onClick: () => setPage?.("asap"),
     },
     {
       judul: "Karbon Monoksida",
@@ -296,6 +306,7 @@ export default function HalamanDashboard({
       labelKategori: labelInput(fuzzy?.co),
       outputKenyamanan: kenyamanan(fuzzy?.co),
       rentang: "< 9 ppm",
+      onClick: () => setPage?.("kualitasUdara"),
     },
   ];
 
@@ -321,7 +332,8 @@ export default function HalamanDashboard({
             </h2>
             <p className="text-sm text-slate-500">
               Teks pada kartu menunjukkan kategori input fuzzy. Warna kartu
-              menunjukkan output kenyamanan fuzzy.
+              menunjukkan output kenyamanan fuzzy. Klik kartu parameter untuk
+              membuka halaman parameternya.
             </p>
           </div>
 
