@@ -1,16 +1,17 @@
 export const KONFIG_NOTIFIKASI = {
-  // saklar dari kode
+  // Saklar dari kode.
+  // Jika false, Telegram tidak akan dikirim walaupun saklar website aktif.
   telegramAktifDariKode: true,
 
-  // kirim tiap 5 kali tidak nyaman beruntun
+  // Kirim Telegram jika status Tidak Nyaman terjadi 3 kali beruntun.
   jumlahBurukBerturutTurut: 3,
 
-  // path firebase
+  // Path Firebase
   pathAlerts: "alerts",
   pathMonitoringState: "monitoring_state",
   pathPengaturanTelegram: "pengaturan/telegramAktifWebsite",
 
-  // telegram
+  // Telegram
   telegramBotToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN,
   telegramChatId: import.meta.env.VITE_TELEGRAM_CHAT_ID,
 };
@@ -42,8 +43,8 @@ export const DAFTAR_PARAMETER_ALERT = [
   },
   {
     key: "asap",
-    label: "Asap",
-    unit: "ppm",
+    label: "Indeks Asap",
+    unit: "indeks",
     ambilStatus: (fuzzy) => fuzzy?.asap?.kenyamanan || "Nyaman",
     ambilDetail: (fuzzy) => fuzzy?.asap?.label || "-",
     ambilNilai: (latest) => latest?.asap_metric || 0,

@@ -5,6 +5,32 @@ import { ambilDatabaseFirebase } from "../firebase/konfigurasiFirebase";
 import { KONFIG_APP, TATA_LETAK_BAGIAN } from "../fuzzy/aturanFuzzy";
 import { buatDataDummyRealtime } from "../utils/dataDummy";
 
+const BAGIAN_DUMMY_TIDAK_NYAMAN = "bagian_l2_4";
+
+function paksaDummyBagian4TidakNyaman(data, bagian) {
+  if (bagian.id !== BAGIAN_DUMMY_TIDAK_NYAMAN) {
+    return data;
+  }
+
+  return {
+    ...data,
+
+    // Dibuat panas agar parameter suhu selalu masuk Tidak Nyaman.
+    // Nilai 31 aman karena melewati batas panas pada aturan fuzzy.
+    suhu: 31.0,
+
+    // Parameter lain dibuat tetap normal supaya yang terlihat bermasalah utamanya suhu.
+    kelembapan: 52.0,
+    suara_db: 40.0,
+    asap_metric: 2.0,
+    asap_flag: 0,
+    ppm_co: 3.0,
+
+    // Opsional: agar data mentah MQ juga terlihat normal.
+    mq2_delta: 20,
+  };
+}
+
 export function useDummyRealtimeFirebase({ aktif = true } = {}) {
   const latestSeqRef = useRef({});
   const historySeqRef = useRef({});
@@ -42,12 +68,14 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
             latestSeqRef.current[bagian.id] =
               (latestSeqRef.current[bagian.id] || 0) + 1;
 
-            const data = buatDataDummyRealtime(
+            const dataAwal = buatDataDummyRealtime(
               bagian,
               latestSeqRef.current[bagian.id],
               KONFIG_APP.dummyLatestIntervalMs,
               sekarang,
             );
+
+            const data = paksaDummyBagian4TidakNyaman(dataAwal, bagian);
 
             await set(ref(db, `perpustakaan/${bagian.id}/latest`), data);
             await set(ref(db, `perpustakaan/${bagian.id}/node_info`), {
@@ -79,12 +107,14 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
             historySeqRef.current[bagian.id] =
               (historySeqRef.current[bagian.id] || 0) + 1;
 
-            const data = buatDataDummyRealtime(
+            const dataAwal = buatDataDummyRealtime(
               bagian,
               historySeqRef.current[bagian.id],
               KONFIG_APP.dummyHistoryIntervalMs,
               sekarang,
             );
+
+            const data = paksaDummyBagian4TidakNyaman(dataAwal, bagian);
 
             await push(ref(db, `perpustakaan/${bagian.id}/history`), data);
           }),

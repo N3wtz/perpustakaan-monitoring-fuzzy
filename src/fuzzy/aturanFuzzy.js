@@ -15,19 +15,22 @@ export const KONFIG_APP = {
   dummyLatestIntervalMs: 5000,
   dummyHistoryIntervalMs: 60000,
 
-  // Jika ESP32 tidak mengirim latest lebih dari nilai ini, UI menampilkan Offline.
+  // Jika ESP32 tidak mengirim latest lebih dari nilai ini,
+  // UI menampilkan Offline.
   esp32OfflineTimeoutMs: 15000,
 
   // QoS hanya dihitung dari sensor ESP32 asli, bukan dummy.
   qosHanyaSensorAsli: true,
+
   refreshJamMs: 1000,
 };
 
 // ======================================================
 // KONFIGURASI AREA YANG DITAMPILKAN
 // ======================================================
-// Struktur Firebase tidak diubah. Path lama /perpustakaan/bagian_l1_x
-// tetap boleh ada, tetapi website hanya membaca dan menampilkan lantai 2.
+// Struktur Firebase tidak diubah.
+// Path lama /perpustakaan/bagian_l1_x tetap boleh ada,
+// tetapi website hanya membaca dan menampilkan lantai 2.
 export const LANTAI_YANG_DITAMPILKAN = 2;
 
 // ESP32 asli berada di lantai 2 bagian 1, 3, 6, dan 8.
@@ -131,66 +134,133 @@ export const OPSI_PERIODE = [
 ];
 
 export const META_PARAMETER = {
-  suhu: { key: "suhu", label: "Suhu", unit: "°C" },
-  kelembapan: { key: "kelembapan", label: "Kelembapan", unit: "%" },
-  kebisingan: { key: "suara_db", label: "Kebisingan", unit: "dB" },
-  asap: { key: "asap_metric", label: "Indeks Asap", unit: "indeks" },
-  kualitasUdara: { key: "ppm_co", label: "Kualitas Udara (CO)", unit: "ppm" },
+  suhu: {
+    key: "suhu",
+    label: "Suhu",
+    unit: "°C",
+  },
+  kelembapan: {
+    key: "kelembapan",
+    label: "Kelembapan",
+    unit: "%",
+  },
+  kebisingan: {
+    key: "suara_db",
+    label: "Kebisingan",
+    unit: "dB",
+  },
+  asap: {
+    key: "asap_metric",
+    label: "Indeks Asap",
+    unit: "indeks",
+  },
+  kualitasUdara: {
+    key: "ppm_co",
+    label: "Kualitas Udara (CO)",
+    unit: "ppm",
+  },
 };
 
 // ======================================================
 // FUNGSI KEANGGOTAAN INPUT
 // ======================================================
+// Bagian ini sudah diperbaiki agar tidak ada gap antar kategori.
+// Contoh: suhu 22.7 tidak lagi jatuh ke Dingin,
+// karena sudah berada pada transisi Sejuk menuju Nyaman.
 export const ATURAN_MAMDANI = {
   suhu: {
-    dingin: { type: "trap", points: [0, 0, 20.0, 20.5], label: "Dingin" },
-    sejuk: { type: "tri", points: [20.5, 21.6, 22.7], label: "Sejuk" },
-    nyaman: { type: "tri", points: [22.8, 24.3, 25.8], label: "Nyaman" },
-    hangat: { type: "tri", points: [25.9, 26.55, 27.2], label: "Hangat" },
-    panas: { type: "trap", points: [27.2, 27.7, 40, 40], label: "Panas" },
+    dingin: {
+      type: "trap",
+      points: [0, 0, 20, 22],
+      label: "Dingin",
+    },
+    sejuk: {
+      type: "tri",
+      points: [20, 22, 23.5],
+      label: "Sejuk",
+    },
+    nyaman: {
+      type: "trap",
+      points: [22.5, 23, 26, 26.5],
+      label: "Nyaman",
+    },
+    hangat: {
+      type: "tri",
+      points: [25.5, 27, 28.5],
+      label: "Hangat",
+    },
+    panas: {
+      type: "trap",
+      points: [27.5, 29, 40, 40],
+      label: "Panas",
+    },
   },
 
   kelembapan: {
     terlaluKering: {
       type: "trap",
-      points: [0, 0, 35, 40],
+      points: [0, 0, 35, 42],
       label: "Terlalu Kering",
     },
-    nyaman: { type: "tri", points: [40, 50, 60], label: "Nyaman" },
+    nyaman: {
+      type: "trap",
+      points: [38, 40, 60, 62],
+      label: "Nyaman",
+    },
     terlaluLembab: {
       type: "trap",
-      points: [60, 65, 100, 100],
+      points: [58, 65, 100, 100],
       label: "Terlalu Lembab",
     },
   },
 
   kebisingan: {
-    nyaman: { type: "trap", points: [0, 0, 40, 45], label: "Nyaman" },
+    nyaman: {
+      type: "trap",
+      points: [0, 0, 40, 48],
+      label: "Nyaman",
+    },
     kebisinganRendah: {
       type: "tri",
-      points: [45, 50, 55],
+      points: [42, 50, 58],
       label: "Kebisingan Rendah",
     },
     kebisinganTinggi: {
       type: "trap",
-      points: [55, 60, 120, 120],
+      points: [52, 55, 120, 120],
       label: "Kebisingan Tinggi",
     },
   },
 
   asap: {
-    nyaman: { type: "trap", points: [0, 0, 8, 10], label: "Nyaman" },
+    nyaman: {
+      type: "trap",
+      points: [0, 0, 6, 10],
+      label: "Nyaman",
+    },
     terdeteksiAsap: {
       type: "trap",
-      points: [10, 12, 100, 100],
+      points: [8, 10, 100, 100],
       label: "Terdeteksi Asap",
     },
   },
 
   co: {
-    nyaman: { type: "trap", points: [0, 0, 5, 6], label: "Nyaman" },
-    coRendah: { type: "tri", points: [6, 7.5, 9], label: "CO Rendah" },
-    coTinggi: { type: "trap", points: [9, 10, 100, 100], label: "CO Tinggi" },
+    nyaman: {
+      type: "trap",
+      points: [0, 0, 5, 7],
+      label: "Nyaman",
+    },
+    coRendah: {
+      type: "tri",
+      points: [5, 7.5, 9.5],
+      label: "CO Rendah",
+    },
+    coTinggi: {
+      type: "trap",
+      points: [8, 9, 100, 100],
+      label: "CO Tinggi",
+    },
   },
 };
 
@@ -198,9 +268,21 @@ export const ATURAN_MAMDANI = {
 // OUTPUT FUZZY
 // ======================================================
 export const OUTPUT_KENYAMANAN = {
-  tidakNyaman: { type: "trap", points: [0, 0, 25, 45], label: "Tidak Nyaman" },
-  kurangNyaman: { type: "tri", points: [35, 55, 75], label: "Kurang Nyaman" },
-  nyaman: { type: "trap", points: [65, 80, 100, 100], label: "Nyaman" },
+  tidakNyaman: {
+    type: "trap",
+    points: [0, 0, 25, 45],
+    label: "Tidak Nyaman",
+  },
+  kurangNyaman: {
+    type: "tri",
+    points: [35, 55, 75],
+    label: "Kurang Nyaman",
+  },
+  nyaman: {
+    type: "trap",
+    points: [65, 80, 100, 100],
+    label: "Nyaman",
+  },
 };
 
 // ======================================================
