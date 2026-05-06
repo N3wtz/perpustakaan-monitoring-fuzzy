@@ -281,7 +281,6 @@ function KartuParameter({
   unit,
   labelKategori,
   outputKenyamanan,
-  rentang,
   onClick,
 }) {
   const kelas = getKelasStatus(outputKenyamanan);
@@ -313,19 +312,13 @@ function KartuParameter({
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-2">
+      <div className="mt-7">
         <span
           className={`rounded-full px-4 py-1.5 text-sm font-semibold ${kelas.badge}`}
         >
           {labelKategori}
         </span>
-
-        <span className="rounded-full bg-white/80 px-4 py-1.5 text-xs text-slate-600">
-          Output: {outputKenyamanan}
-        </span>
       </div>
-
-      <div className="mt-6 text-xs text-slate-500">Rentang aman: {rentang}</div>
     </button>
   );
 }
@@ -420,7 +413,7 @@ export default function HalamanDashboard({
 
           <p className="mt-2 max-w-5xl text-sm leading-6 text-slate-500">
             Teks pada kartu menunjukkan kategori input fuzzy. Warna kartu
-            menunjukkan output kenyamanan fuzzy. Klik kartu parameter untuk
+            menunjukkan hasil kenyamanan fuzzy. Klik kartu parameter untuk
             membuka halaman parameternya.
           </p>
         </div>
