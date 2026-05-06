@@ -355,7 +355,7 @@ export const RULE_KESELURUHAN = [
     kebisingan: "nyaman",
     asap: "nyaman",
     co: "nyaman",
-    output: "tidakNyaman",
+    output: "kurangNyaman",
   },
   {
     suhu: "panas",
@@ -371,7 +371,7 @@ export const RULE_KESELURUHAN = [
     kebisingan: "nyaman",
     asap: "nyaman",
     co: "nyaman",
-    output: "tidakNyaman",
+    output: "kurangNyaman",
   },
   {
     suhu: "nyaman",
@@ -379,7 +379,7 @@ export const RULE_KESELURUHAN = [
     kebisingan: "nyaman",
     asap: "nyaman",
     co: "nyaman",
-    output: "tidakNyaman",
+    output: "kurangNyaman",
   },
   {
     suhu: "nyaman",
@@ -427,7 +427,7 @@ export const RULE_KESELURUHAN = [
     kebisingan: "nyaman",
     asap: "nyaman",
     co: "nyaman",
-    output: "tidakNyaman",
+    output: "kurangNyaman",
   },
   {
     suhu: "sejuk",
@@ -435,7 +435,7 @@ export const RULE_KESELURUHAN = [
     kebisingan: "nyaman",
     asap: "nyaman",
     co: "nyaman",
-    output: "tidakNyaman",
+    output: "kurangNyaman",
   },
   {
     suhu: "hangat",
@@ -443,7 +443,7 @@ export const RULE_KESELURUHAN = [
     kebisingan: "nyaman",
     asap: "nyaman",
     co: "nyaman",
-    output: "tidakNyaman",
+    output: "kurangNyaman",
   },
   {
     suhu: "hangat",
@@ -451,7 +451,7 @@ export const RULE_KESELURUHAN = [
     kebisingan: "nyaman",
     asap: "nyaman",
     co: "nyaman",
-    output: "tidakNyaman",
+    output: "kurangNyaman",
   },
   {
     suhu: "sejuk",
@@ -491,7 +491,7 @@ export const RULE_KESELURUHAN = [
     kebisingan: "kebisinganRendah",
     asap: "nyaman",
     co: "nyaman",
-    output: "tidakNyaman",
+    output: "kurangNyaman",
   },
   {
     suhu: "nyaman",
@@ -499,7 +499,7 @@ export const RULE_KESELURUHAN = [
     kebisingan: "kebisinganRendah",
     asap: "nyaman",
     co: "nyaman",
-    output: "tidakNyaman",
+    output: "kurangNyaman",
   },
   {
     suhu: "nyaman",
