@@ -5,18 +5,12 @@ export const KONFIG_APP = {
   namaAplikasi: "Perpustakaan Udayana",
   namaAdmin: "Admin",
 
-  // false = baca Firebase asli.
-  // true = pakai DATA_DUMMY lokal dari src/utils/dataDummy.js.
   gunakanDataDummy: false,
 
-  // Dummy realtime Firebase hanya menulis bagian dummy lantai 2.
-  // Bagian ESP32 asli tidak akan pernah ditimpa dummy.
   dummyRealtimeFirebaseAktif: true,
   dummyLatestIntervalMs: 5000,
   dummyHistoryIntervalMs: 60000,
 
-  // Jika ESP32 tidak mengirim latest lebih dari nilai ini,
-  // UI menampilkan Offline.
   esp32OfflineTimeoutMs: 15000,
 
   // QoS hanya dihitung dari sensor ESP32 asli, bukan dummy.
