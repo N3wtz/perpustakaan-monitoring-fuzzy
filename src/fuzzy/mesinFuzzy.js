@@ -169,6 +169,7 @@ function prosesFuzzyKeseluruhan(fuzzyParameter) {
     nyaman: 0,
   };
 
+  // 1. Jalankan RULE_KESELURUHAN sebagai aturan utama
   RULE_KESELURUHAN.forEach((rule) => {
     const alpha = Math.min(
       fuzzyParameter.suhu.derajat[rule.suhu] || 0,
@@ -181,38 +182,50 @@ function prosesFuzzyKeseluruhan(fuzzyParameter) {
     agregasi[rule.output] = Math.max(agregasi[rule.output], alpha);
   });
 
-  // fallback supaya kombinasi di luar 30 rule tetap punya hasil logis
-  agregasi.tidakNyaman = Math.max(
-    agregasi.tidakNyaman,
-    fuzzyParameter.asap.derajat.terdeteksiAsap || 0,
-    fuzzyParameter.co.derajat.coTinggi || 0,
-    fuzzyParameter.kebisingan.derajat.kebisinganTinggi || 0,
-    fuzzyParameter.suhu.derajat.dingin || 0,
-    fuzzyParameter.suhu.derajat.panas || 0,
-    fuzzyParameter.kelembapan.derajat.terlaluKering || 0,
-    fuzzyParameter.kelembapan.derajat.terlaluLembab || 0,
-  );
+  // 2. Cek apakah ada rule yang aktif
+  const adaRuleAktif =
+    agregasi.tidakNyaman > 0 ||
+    agregasi.kurangNyaman > 0 ||
+    agregasi.nyaman > 0;
 
-  agregasi.kurangNyaman = Math.max(
-    agregasi.kurangNyaman,
-    fuzzyParameter.suhu.derajat.hangat || 0,
-    fuzzyParameter.kebisingan.derajat.kebisinganRendah || 0,
-    fuzzyParameter.co.derajat.coRendah || 0,
-  );
+  // 3. Fallback hanya dipakai kalau TIDAK ADA rule yang aktif sama sekali.
+  // Jadi fallback tidak akan menimpa hasil RULE_KESELURUHAN.
+  if (!adaRuleAktif) {
+    // Kondisi bahaya/berat
+    agregasi.tidakNyaman = Math.max(
+      agregasi.tidakNyaman,
+      fuzzyParameter.asap.derajat.terdeteksiAsap || 0,
+      fuzzyParameter.co.derajat.coTinggi || 0,
+      fuzzyParameter.kebisingan.derajat.kebisinganTinggi || 0,
+      fuzzyParameter.suhu.derajat.panas || 0,
+    );
 
-  agregasi.nyaman = Math.max(
-    agregasi.nyaman,
-    Math.min(
-      Math.max(
-        fuzzyParameter.suhu.derajat.nyaman || 0,
-        fuzzyParameter.suhu.derajat.sejuk || 0,
+    // Kondisi gangguan ringan/sedang
+    agregasi.kurangNyaman = Math.max(
+      agregasi.kurangNyaman,
+      fuzzyParameter.suhu.derajat.dingin || 0,
+      fuzzyParameter.suhu.derajat.hangat || 0,
+      fuzzyParameter.kelembapan.derajat.terlaluKering || 0,
+      fuzzyParameter.kelembapan.derajat.terlaluLembab || 0,
+      fuzzyParameter.kebisingan.derajat.kebisinganRendah || 0,
+      fuzzyParameter.co.derajat.coRendah || 0,
+    );
+
+    // Kondisi nyaman
+    agregasi.nyaman = Math.max(
+      agregasi.nyaman,
+      Math.min(
+        Math.max(
+          fuzzyParameter.suhu.derajat.nyaman || 0,
+          fuzzyParameter.suhu.derajat.sejuk || 0,
+        ),
+        fuzzyParameter.kelembapan.derajat.nyaman || 0,
+        fuzzyParameter.kebisingan.derajat.nyaman || 0,
+        fuzzyParameter.asap.derajat.nyaman || 0,
+        fuzzyParameter.co.derajat.nyaman || 0,
       ),
-      fuzzyParameter.kelembapan.derajat.nyaman || 0,
-      fuzzyParameter.kebisingan.derajat.nyaman || 0,
-      fuzzyParameter.asap.derajat.nyaman || 0,
-      fuzzyParameter.co.derajat.nyaman || 0,
-    ),
-  );
+    );
+  }
 
   const skor = centroid(agregasi);
   const kenyamananTotal = labelOutputDariSkor(skor);
