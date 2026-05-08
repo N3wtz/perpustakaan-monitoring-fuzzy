@@ -27,20 +27,18 @@ export const KONFIG_APP = {
 // tetapi website hanya membaca dan menampilkan lantai 2.
 export const LANTAI_YANG_DITAMPILKAN = 2;
 
-// ESP32 asli berada di lantai 2 bagian 1, 3, 6, dan 8.
 export const DAFTAR_BAGIAN_ESP32_ASLI = [
-  "bagian_l2_1",
-  "bagian_l2_3",
-  "bagian_l2_6",
-  "bagian_l2_8",
-];
-
-// Bagian dummy realtime berada di lantai 2 bagian 2, 4, 5, dan 7.
-export const DAFTAR_BAGIAN_DUMMY_REALTIME = [
   "bagian_l2_2",
   "bagian_l2_4",
   "bagian_l2_5",
   "bagian_l2_7",
+];
+
+export const DAFTAR_BAGIAN_DUMMY_REALTIME = [
+  "bagian_l2_1",
+  "bagian_l2_3",
+  "bagian_l2_6",
+  "bagian_l2_8",
 ];
 
 export const TATA_LETAK_BAGIAN = [
@@ -51,7 +49,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B1",
     lantai: 2,
     nomor: 1,
-    sumber: "esp32",
+    sumber: "dummy",
   },
   {
     id: "bagian_l2_2",
@@ -60,7 +58,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B2",
     lantai: 2,
     nomor: 2,
-    sumber: "dummy",
+    sumber: "esp32",
   },
   {
     id: "bagian_l2_3",
@@ -69,7 +67,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B3",
     lantai: 2,
     nomor: 3,
-    sumber: "esp32",
+    sumber: "dummy",
   },
   {
     id: "bagian_l2_4",
@@ -78,7 +76,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B4",
     lantai: 2,
     nomor: 4,
-    sumber: "dummy",
+    sumber: "esp32",
   },
   {
     id: "bagian_l2_5",
@@ -87,7 +85,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B5",
     lantai: 2,
     nomor: 5,
-    sumber: "dummy",
+    sumber: "esp32",
   },
   {
     id: "bagian_l2_6",
@@ -96,7 +94,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B6",
     lantai: 2,
     nomor: 6,
-    sumber: "esp32",
+    sumber: "dummy",
   },
   {
     id: "bagian_l2_7",
@@ -105,7 +103,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B7",
     lantai: 2,
     nomor: 7,
-    sumber: "dummy",
+    sumber: "esp32",
   },
   {
     id: "bagian_l2_8",
@@ -114,7 +112,7 @@ export const TATA_LETAK_BAGIAN = [
     labelPendek: "B8",
     lantai: 2,
     nomor: 8,
-    sumber: "esp32",
+    sumber: "dummy",
   },
 ];
 
