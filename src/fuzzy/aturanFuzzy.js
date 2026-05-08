@@ -229,12 +229,12 @@ export const ATURAN_MAMDANI = {
   asap: {
     nyaman: {
       type: "trap",
-      points: [0, 0, 6, 10],
+      points: [0, 0, 10, 15],
       label: "Nyaman",
     },
     terdeteksiAsap: {
       type: "trap",
-      points: [8, 10, 100, 100],
+      points: [12, 15, 100, 100],
       label: "Terdeteksi Asap",
     },
   },

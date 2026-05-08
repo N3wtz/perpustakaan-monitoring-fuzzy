@@ -5,29 +5,43 @@ import { ambilDatabaseFirebase } from "../firebase/konfigurasiFirebase";
 import { KONFIG_APP, TATA_LETAK_BAGIAN } from "../fuzzy/aturanFuzzy";
 import { buatDataDummyRealtime } from "../utils/dataDummy";
 
-const BAGIAN_DUMMY_TIDAK_NYAMAN = "bagian_l2_4";
+function buatVariasiNyaman(seq, min, max, fase = 0, desimal = 1) {
+  const tengah = (min + max) / 2;
+  const amplitudo = (max - min) / 2;
 
-function paksaDummyBagian4TidakNyaman(data, bagian) {
-  if (bagian.id !== BAGIAN_DUMMY_TIDAK_NYAMAN) {
-    return data;
-  }
+  // Membuat variasi naik-turun secara halus.
+  // Nilai tetap dikunci agar tidak keluar dari batas nyaman.
+  const nilai = tengah + Math.sin((seq + fase) * 0.73) * amplitudo * 0.85;
+
+  return Number(Math.min(max, Math.max(min, nilai)).toFixed(desimal));
+}
+
+function paksaDummyNyaman(data) {
+  const seq = Number(
+    data?.qos?.seq || data?.seq || data?.timestamp || Date.now(),
+  );
 
   return {
     ...data,
 
-    // Dibuat panas agar parameter suhu selalu masuk Tidak Nyaman.
-    // Nilai 31 aman karena melewati batas panas pada aturan fuzzy.
-    suhu: 31.0,
+    // Suhu dibuat bervariasi, tetapi tetap dalam batas nyaman.
+    suhu: buatVariasiNyaman(seq, 23.2, 25.6, 1, 1),
 
-    // Parameter lain dibuat tetap normal supaya yang terlihat bermasalah utamanya suhu.
-    kelembapan: 52.0,
-    suara_db: 40.0,
-    asap_metric: 2.0,
+    // Kelembapan dibuat bervariasi, tetapi tetap dalam batas nyaman.
+    kelembapan: buatVariasiNyaman(seq, 44, 58, 2, 1),
+
+    // Suara dibuat bervariasi, tetapi tetap dalam kondisi tenang/nyaman.
+    suara_db: buatVariasiNyaman(seq, 32, 44, 3, 1),
+
+    // Asap dibuat tetap aman dan tidak terdeteksi.
+    asap_metric: buatVariasiNyaman(seq, 0.5, 5.5, 4, 1),
     asap_flag: 0,
-    ppm_co: 3.0,
 
-    // Opsional: agar data mentah MQ juga terlihat normal.
-    mq2_delta: 20,
+    // CO dibuat bervariasi, tetapi tetap dalam batas nyaman.
+    ppm_co: buatVariasiNyaman(seq, 1, 5.5, 5, 1),
+
+    // Data mentah MQ dibuat bervariasi, tetapi tetap normal.
+    mq2_delta: Math.round(buatVariasiNyaman(seq, 5, 35, 6, 0)),
   };
 }
 
@@ -43,8 +57,8 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
 
     if (!bolehJalan) return undefined;
 
-    // Penting: hanya bagian dummy lantai 2.
-    // Bagian ESP32 asli lantai 2 bagian 1, 3, 6, dan 8 tidak ditulis hook ini.
+    // Penting: hanya bagian dummy.
+    // Bagian ESP32 asli tidak ditulis oleh hook ini.
     const daftarDummy = TATA_LETAK_BAGIAN.filter(
       (bagian) => bagian.sumber === "dummy",
     );
@@ -75,9 +89,10 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
               sekarang,
             );
 
-            const data = paksaDummyBagian4TidakNyaman(dataAwal, bagian);
+            const data = paksaDummyNyaman(dataAwal);
 
             await set(ref(db, `perpustakaan/${bagian.id}/latest`), data);
+
             await set(ref(db, `perpustakaan/${bagian.id}/node_info`), {
               bagian_id: bagian.id,
               ruang_id: bagian.id,
@@ -114,7 +129,7 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
               sekarang,
             );
 
-            const data = paksaDummyBagian4TidakNyaman(dataAwal, bagian);
+            const data = paksaDummyNyaman(dataAwal);
 
             await push(ref(db, `perpustakaan/${bagian.id}/history`), data);
           }),
@@ -124,7 +139,7 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
       }
     }
 
-    // Kirim sekali di awal supaya 4 dummy langsung muncul setelah login.
+    // Kirim sekali di awal supaya dummy langsung muncul setelah login.
     kirimLatestDummy().catch((error) =>
       console.error("Gagal kirim latest dummy:", error),
     );
