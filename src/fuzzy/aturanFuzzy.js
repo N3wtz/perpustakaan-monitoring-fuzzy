@@ -19,12 +19,6 @@ export const KONFIG_APP = {
   refreshJamMs: 1000,
 };
 
-// ======================================================
-// KONFIGURASI AREA YANG DITAMPILKAN
-// ======================================================
-// Struktur Firebase tidak diubah.
-// Path lama /perpustakaan/bagian_l1_x tetap boleh ada,
-// tetapi website hanya membaca dan menampilkan lantai 2.
 export const LANTAI_YANG_DITAMPILKAN = 2;
 
 export const DAFTAR_BAGIAN_ESP32_ASLI = [
@@ -45,7 +39,7 @@ export const TATA_LETAK_BAGIAN = [
   {
     id: "bagian_l2_1",
     label: "Bagian 1",
-    labelLengkap: "Lantai 2 - Bagian 1",
+    labelLengkap: "Lantai 1 - Bagian 1",
     labelPendek: "B1",
     lantai: 2,
     nomor: 1,
@@ -54,7 +48,7 @@ export const TATA_LETAK_BAGIAN = [
   {
     id: "bagian_l2_2",
     label: "Bagian 2",
-    labelLengkap: "Lantai 2 - Bagian 2",
+    labelLengkap: "Lantai 1 - Bagian 2",
     labelPendek: "B2",
     lantai: 2,
     nomor: 2,
@@ -63,7 +57,7 @@ export const TATA_LETAK_BAGIAN = [
   {
     id: "bagian_l2_3",
     label: "Bagian 3",
-    labelLengkap: "Lantai 2 - Bagian 3",
+    labelLengkap: "Lantai 1 - Bagian 3",
     labelPendek: "B3",
     lantai: 2,
     nomor: 3,
@@ -72,7 +66,7 @@ export const TATA_LETAK_BAGIAN = [
   {
     id: "bagian_l2_4",
     label: "Bagian 4",
-    labelLengkap: "Lantai 2 - Bagian 4",
+    labelLengkap: "Lantai 1 - Bagian 4",
     labelPendek: "B4",
     lantai: 2,
     nomor: 4,
@@ -81,7 +75,7 @@ export const TATA_LETAK_BAGIAN = [
   {
     id: "bagian_l2_5",
     label: "Bagian 5",
-    labelLengkap: "Lantai 2 - Bagian 5",
+    labelLengkap: "Lantai 1 - Bagian 5",
     labelPendek: "B5",
     lantai: 2,
     nomor: 5,
@@ -90,7 +84,7 @@ export const TATA_LETAK_BAGIAN = [
   {
     id: "bagian_l2_6",
     label: "Bagian 6",
-    labelLengkap: "Lantai 2 - Bagian 6",
+    labelLengkap: "Lantai 1 - Bagian 6",
     labelPendek: "B6",
     lantai: 2,
     nomor: 6,
@@ -99,7 +93,7 @@ export const TATA_LETAK_BAGIAN = [
   {
     id: "bagian_l2_7",
     label: "Bagian 7",
-    labelLengkap: "Lantai 2 - Bagian 7",
+    labelLengkap: "Lantai 1 - Bagian 7",
     labelPendek: "B7",
     lantai: 2,
     nomor: 7,
@@ -108,7 +102,7 @@ export const TATA_LETAK_BAGIAN = [
   {
     id: "bagian_l2_8",
     label: "Bagian 8",
-    labelLengkap: "Lantai 2 - Bagian 8",
+    labelLengkap: "Lantai 1 - Bagian 8",
     labelPendek: "B8",
     lantai: 2,
     nomor: 8,
@@ -116,7 +110,6 @@ export const TATA_LETAK_BAGIAN = [
   },
 ];
 
-// Alias agar file lama yang masih import TATA_LETAK_RUANG tetap aman.
 export const TATA_LETAK_RUANG = TATA_LETAK_BAGIAN;
 
 export const OPSI_PERIODE = [
@@ -156,9 +149,6 @@ export const META_PARAMETER = {
 // ======================================================
 // FUNGSI KEANGGOTAAN INPUT
 // ======================================================
-// Bagian ini sudah diperbaiki agar tidak ada gap antar kategori.
-// Contoh: suhu 22.7 tidak lagi jatuh ke Dingin,
-// karena sudah berada pada transisi Sejuk menuju Nyaman.
 export const ATURAN_MAMDANI = {
   suhu: {
     dingin: {

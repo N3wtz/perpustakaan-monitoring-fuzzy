@@ -251,7 +251,7 @@ function PanelKondisiPerpustakaan({ rooms, bagianAktif, setBagianAktif }) {
             type="button"
             className="rounded-[14px] bg-white px-6 py-3 text-sm font-semibold text-blue-600 shadow-sm ring-1 ring-blue-100"
           >
-            Lantai 2
+            Lantai 1
           </button>
         </div>
       </div>

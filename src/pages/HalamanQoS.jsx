@@ -242,7 +242,7 @@ function KartuQosBagian({ bagian, metrics, statusSesi, room }) {
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3">
         <div className="rounded-2xl bg-slate-50 p-4">
           <div className="text-xs text-slate-400">Paket valid</div>
           <div className="mt-1 text-xl font-semibold text-slate-900">
@@ -258,13 +258,6 @@ function KartuQosBagian({ bagian, metrics, statusSesi, room }) {
         </div>
 
         <div className="rounded-2xl bg-slate-50 p-4">
-          <div className="text-xs text-slate-400">Paket diabaikan</div>
-          <div className="mt-1 text-xl font-semibold text-slate-900">
-            {metrics?.ignoredCount || 0}
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-slate-50 p-4">
           <div className="text-xs text-slate-400">Seq terakhir</div>
           <div className="mt-1 text-xl font-semibold text-slate-900">
             {metrics?.lastSeq || 0}
@@ -276,8 +269,8 @@ function KartuQosBagian({ bagian, metrics, statusSesi, room }) {
         <BarisMetrik
           label="Delay end-to-end"
           realtime={formatMs(metrics?.latestDelayMs)}
-          rataRata={formatDetik(metrics?.avgDelayMs)}
-          medianValue={formatDetik(metrics?.medianDelayMs)}
+          rataRata={formatMs(metrics?.avgDelayMs)}
+          medianValue={formatMs(metrics?.medianDelayMs)}
           kategori={kategoriDelayText}
         />
 
