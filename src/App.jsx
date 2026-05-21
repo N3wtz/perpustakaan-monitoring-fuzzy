@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-
 import ShellAplikasi from "./components/ShellAplikasi";
+
 import HalamanDashboard from "./pages/HalamanDashboard";
 import HalamanParameter from "./pages/HalamanParameter";
+import HalamanGrafikGabungan from "./pages/HalamanGrafikGabungan";
 import HalamanNotifikasi from "./pages/HalamanNotifikasi";
 import HalamanQoS from "./pages/HalamanQoS";
 import HalamanLogin from "./pages/HalamanLogin";
@@ -11,6 +12,7 @@ import { useDataPerpustakaan } from "./hooks/useDataPerpustakaan";
 import { useDummyRealtimeFirebase } from "./hooks/useDummyRealtimeFirebase";
 import { useAlertFirebase } from "./hooks/useAlertFirebase";
 import { useMesinAlert } from "./hooks/useMesinAlert";
+
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 
 const PAGE_PARAMETER = [
@@ -48,6 +50,7 @@ function useKenyamananPerpustakaan(rooms) {
 
 function IsiAplikasi() {
   const { user, loadingAuth } = useAuth();
+
   const [page, setPage] = useState("dashboard");
   const [ruangAktif, setRuangAktif] = useState("bagian_l2_1");
 
@@ -56,6 +59,7 @@ function IsiAplikasi() {
   useDummyRealtimeFirebase({ aktif: sudahLogin });
 
   const { rooms, loading } = useDataPerpustakaan({ aktif: sudahLogin });
+
   const statusPerpustakaan = useKenyamananPerpustakaan(rooms);
 
   const {
@@ -113,6 +117,14 @@ function IsiAplikasi() {
       <HalamanParameter
         rooms={rooms}
         page={page}
+        ruangAktif={ruangAktif}
+        setRuangAktif={setRuangAktif}
+      />
+    );
+  } else if (page === "grafikGabungan") {
+    konten = (
+      <HalamanGrafikGabungan
+        rooms={rooms}
         ruangAktif={ruangAktif}
         setRuangAktif={setRuangAktif}
       />
