@@ -168,7 +168,7 @@ export const ATURAN_MAMDANI = {
   kelembapan: {
     kering: {
       type: "trap",
-      points: [0, 0, 55, 56],
+      points: [0, 0, 45, 56],
       label: "Kering",
     },
     nyaman: {

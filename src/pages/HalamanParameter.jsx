@@ -25,7 +25,7 @@ import {
   angkaAman,
   buatFilterDefault,
 } from "../utils/helper";
-import { downloadCsvExcel } from "../utils/exportExcel";
+import { downloadWorkbookExcel } from "../utils/exportExcel";
 
 const META_KENYAMANAN_TOTAL = {
   key: "skorTotal",
@@ -37,11 +37,21 @@ const KEY_FUZZY_PARAMETER = {
   suhu: "suhu",
   kelembapan: "kelembapan",
   kebisingan: "kebisingan",
+  asap: "asap",
+  kualitasUdara: "co",
 };
 
 function metaHalaman(page) {
   if (page === "kenyamananTotal") {
     return META_KENYAMANAN_TOTAL;
+  }
+
+  if (page === "asap") {
+    return {
+      ...(META_PARAMETER.asap || {}),
+      label: "Indeks Asap",
+      unit: "indeks",
+    };
   }
 
   return META_PARAMETER[page] || META_KENYAMANAN_TOTAL;
@@ -149,7 +159,252 @@ function buatNamaFile(labelBagian, periode, filterTanggal) {
     .replace(/\s+/g, "_")
     .replace(/[^a-z0-9_\-]/g, "");
 
-  return `export_${bagian}_${rentang}.csv`;
+  return `export_${bagian}_${rentang}.xlsx`;
+}
+
+const PRIORITAS_STATUS = {
+  "Tidak Nyaman": 3,
+  "Kurang Nyaman": 2,
+  Nyaman: 1,
+};
+
+function labelBagianDariId(bagianId) {
+  return (
+    TATA_LETAK_BAGIAN.find((item) => item.id === bagianId)?.label ||
+    bagianId ||
+    "-"
+  );
+}
+
+function formatTanggalLengkap(timestamp) {
+  if (!timestamp) return "-";
+
+  return new Date(timestamp * 1000).toLocaleDateString("id-ID", {
+    timeZone: "Asia/Makassar",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatWaktuLengkap(timestamp) {
+  if (!timestamp) return "-";
+
+  return new Date(timestamp * 1000).toLocaleTimeString("id-ID", {
+    timeZone: "Asia/Makassar",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function ambilRentangData(riwayat = []) {
+  const timestampValid = riwayat
+    .map((item) => angkaAman(item.timestamp))
+    .filter((timestamp) => timestamp > 0)
+    .sort((a, b) => a - b);
+
+  if (!timestampValid.length) {
+    return {
+      tanggalAwal: "-",
+      waktuAwal: "-",
+      tanggalAkhir: "-",
+      waktuAkhir: "-",
+      rentangData: "-",
+    };
+  }
+
+  const awal = timestampValid[0];
+  const akhir = timestampValid[timestampValid.length - 1];
+
+  return {
+    tanggalAwal: formatTanggalLengkap(awal),
+    waktuAwal: formatWaktuLengkap(awal),
+    tanggalAkhir: formatTanggalLengkap(akhir),
+    waktuAkhir: formatWaktuLengkap(akhir),
+    rentangData: `${formatTanggalLengkap(awal)} ${formatWaktuLengkap(
+      awal,
+    )} - ${formatTanggalLengkap(akhir)} ${formatWaktuLengkap(akhir)}`,
+  };
+}
+
+function rataRataData(riwayat = [], field) {
+  const nilai = riwayat
+    .map((item) => Number(item?.[field]))
+    .filter((angka) => Number.isFinite(angka));
+
+  if (!nilai.length) return "-";
+
+  const total = nilai.reduce((sum, angka) => sum + angka, 0);
+  return formatAngka(total / nilai.length);
+}
+
+function tambahHitungStatus(counter, status) {
+  const key = status || "-";
+  counter[key] = (counter[key] || 0) + 1;
+}
+
+function statusDominan(counter = {}) {
+  const entries = Object.entries(counter);
+
+  if (!entries.length) return "-";
+
+  return entries.sort((a, b) => {
+    const selisihJumlah = b[1] - a[1];
+    if (selisihJumlah !== 0) return selisihJumlah;
+
+    return (PRIORITAS_STATUS[b[0]] || 0) - (PRIORITAS_STATUS[a[0]] || 0);
+  })[0][0];
+}
+
+function nilaiPenyebab(status) {
+  if (status === "Tidak Nyaman") return 2;
+  if (status === "Kurang Nyaman") return 1;
+  return 0;
+}
+
+function penyebabUtama(riwayat = []) {
+  const skor = {
+    Suhu: 0,
+    Kelembapan: 0,
+    Kebisingan: 0,
+  };
+
+  riwayat.forEach((item) => {
+    const fuzzy = hitungFuzzyAman(item) || {};
+
+    skor.Suhu += nilaiPenyebab(fuzzy?.suhu?.kenyamanan);
+    skor.Kelembapan += nilaiPenyebab(fuzzy?.kelembapan?.kenyamanan);
+    skor.Kebisingan += nilaiPenyebab(fuzzy?.kebisingan?.kenyamanan);
+  });
+
+  const hasil = Object.entries(skor).sort((a, b) => b[1] - a[1])[0];
+
+  if (!hasil || hasil[1] === 0) return "Tidak ada";
+  return hasil[0];
+}
+
+function ambilSemuaHistoryTerfilter(rooms, periode, filterTanggal) {
+  const semuaHistory = [];
+
+  Object.entries(rooms || {}).forEach(([bagianId, ruang]) => {
+    const historyTerfilter = filterRiwayatByPeriode(
+      ruang?.history || [],
+      periode,
+      filterTanggal,
+    );
+
+    historyTerfilter.forEach((item) => {
+      semuaHistory.push({
+        ...item,
+        bagian_id: item.bagian_id || bagianId,
+        area: labelBagianDariId(bagianId),
+      });
+    });
+  });
+
+  return semuaHistory.sort(
+    (a, b) => angkaAman(a.timestamp) - angkaAman(b.timestamp),
+  );
+}
+
+function buatRekapPerpustakaan(riwayat = [], periode, filterTanggal) {
+  const counterStatusTotal = {
+    Nyaman: 0,
+    "Kurang Nyaman": 0,
+    "Tidak Nyaman": 0,
+  };
+
+  riwayat.forEach((item) => {
+    const fuzzy = hitungFuzzyAman(item) || {};
+    tambahHitungStatus(counterStatusTotal, fuzzy?.kenyamananTotal || "-");
+  });
+
+  const rentang = ambilRentangData(riwayat);
+
+  return [
+    {
+      Periode: periode,
+      Filter: buatRingkasanFilter(periode, filterTanggal),
+      "Tanggal Awal Data": rentang.tanggalAwal,
+      "Waktu Awal Data": rentang.waktuAwal,
+      "Tanggal Akhir Data": rentang.tanggalAkhir,
+      "Waktu Akhir Data": rentang.waktuAkhir,
+      "Rentang Data": rentang.rentangData,
+      "Jumlah Data": riwayat.length,
+      "Rata-rata Suhu (C)": rataRataData(riwayat, "suhu"),
+      "Rata-rata Kelembapan (%)": rataRataData(riwayat, "kelembapan"),
+      "Rata-rata Kebisingan (dB)": rataRataData(riwayat, "suara_db"),
+      "Jumlah Data Nyaman": counterStatusTotal.Nyaman || 0,
+      "Jumlah Data Kurang Nyaman": counterStatusTotal["Kurang Nyaman"] || 0,
+      "Jumlah Data Tidak Nyaman": counterStatusTotal["Tidak Nyaman"] || 0,
+      "Status Dominan Perpustakaan": statusDominan(counterStatusTotal),
+    },
+  ];
+}
+
+function buatRekapPerArea(riwayat = [], periode, filterTanggal) {
+  const mapArea = new Map();
+
+  riwayat.forEach((item) => {
+    const bagianId = item.bagian_id || item.ruang_id || "-";
+
+    if (!mapArea.has(bagianId)) {
+      mapArea.set(bagianId, {
+        bagianId,
+        area: item.area || labelBagianDariId(bagianId),
+        data: [],
+      });
+    }
+
+    mapArea.get(bagianId).data.push(item);
+  });
+
+  return Array.from(mapArea.values())
+    .sort((a, b) => String(a.area).localeCompare(String(b.area)))
+    .map((area) => {
+      const counterSuhu = {};
+      const counterKelembapan = {};
+      const counterKebisingan = {};
+      const counterTotal = {};
+      const rentang = ambilRentangData(area.data);
+
+      area.data.forEach((item) => {
+        const fuzzy = hitungFuzzyAman(item) || {};
+
+        tambahHitungStatus(counterSuhu, fuzzy?.suhu?.kenyamanan || "-");
+        tambahHitungStatus(
+          counterKelembapan,
+          fuzzy?.kelembapan?.kenyamanan || "-",
+        );
+        tambahHitungStatus(
+          counterKebisingan,
+          fuzzy?.kebisingan?.kenyamanan || "-",
+        );
+        tambahHitungStatus(counterTotal, fuzzy?.kenyamananTotal || "-");
+      });
+
+      return {
+        Area: area.area,
+        "Bagian ID": area.bagianId,
+        Periode: periode,
+        Filter: buatRingkasanFilter(periode, filterTanggal),
+        "Tanggal Awal Data": rentang.tanggalAwal,
+        "Waktu Awal Data": rentang.waktuAwal,
+        "Tanggal Akhir Data": rentang.tanggalAkhir,
+        "Waktu Akhir Data": rentang.waktuAkhir,
+        "Rentang Data": rentang.rentangData,
+        "Jumlah Data": area.data.length,
+        "Rata-rata Suhu (C)": rataRataData(area.data, "suhu"),
+        "Rata-rata Kelembapan (%)": rataRataData(area.data, "kelembapan"),
+        "Rata-rata Kebisingan (dB)": rataRataData(area.data, "suara_db"),
+        "Status Suhu": statusDominan(counterSuhu),
+        "Status Kelembapan": statusDominan(counterKelembapan),
+        "Status Kebisingan": statusDominan(counterKebisingan),
+        "Status Kenyamanan Total": statusDominan(counterTotal),
+        "Penyebab Utama": penyebabUtama(area.data),
+      };
+    });
 }
 
 function dataFuzzyAktif(fuzzy, page) {
@@ -163,11 +418,16 @@ function dataFuzzyAktif(fuzzy, page) {
 function buatBarisExport(riwayat, labelBagian, periode, filterTanggal) {
   return (riwayat || []).map((item, index) => {
     const fuzzy = hitungFuzzyAman(item) || {};
+    const bagian =
+      item.area || labelBagian || labelBagianDariId(item.bagian_id);
+
     return {
       No: index + 1,
       Tanggal: formatTanggal(item.timestamp),
       Waktu: formatWaktu(item.timestamp, item.waktu_text),
-      Bagian: labelBagian,
+      "Timestamp Unix": item.timestamp || "-",
+      Bagian: bagian,
+      "Bagian ID": item.bagian_id || item.ruang_id || "-",
       Periode: periode,
       Filter: buatRingkasanFilter(periode, filterTanggal),
 
@@ -267,14 +527,39 @@ export default function HalamanParameter({
   const unitTerkini = page === "kenyamananTotal" ? "" : meta?.unit || "";
 
   function handleExportExcel() {
-    const rows = buatBarisExport(
-      riwayatTerfilter,
-      labelBagian,
+    const semuaHistoryTerfilter = ambilSemuaHistoryTerfilter(
+      rooms,
       periode,
       filterTanggal,
     );
 
-    downloadCsvExcel(rows, buatNamaFile(labelBagian, periode, filterTanggal));
+    const dataHistory = buatBarisExport(
+      semuaHistoryTerfilter,
+      "Semua Bagian",
+      periode,
+      filterTanggal,
+    );
+
+    const rekapPerpustakaan = buatRekapPerpustakaan(
+      semuaHistoryTerfilter,
+      periode,
+      filterTanggal,
+    );
+
+    const rekapPerArea = buatRekapPerArea(
+      semuaHistoryTerfilter,
+      periode,
+      filterTanggal,
+    );
+
+    downloadWorkbookExcel(
+      {
+        "Data History": dataHistory,
+        "Rekap Perpustakaan": rekapPerpustakaan,
+        "Rekap Per Area": rekapPerArea,
+      },
+      buatNamaFile("semua_bagian", periode, filterTanggal),
+    );
   }
 
   return (
@@ -419,8 +704,9 @@ export default function HalamanParameter({
           </div>
 
           <div className="rounded-2xl bg-slate-100 px-4 py-2 text-xs text-slate-600">
-            Export selalu berisi seluruh data sensor, kategori input fuzzy,
-            output kenyamanan, dan skor fuzzy lengkap untuk semua parameter.
+            Export berisi data history semua bagian sesuai filter periode, rekap
+            perpustakaan, rekap per area, rentang tanggal data, status dominan,
+            dan penyebab utama.
           </div>
         </div>
 
