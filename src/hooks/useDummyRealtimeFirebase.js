@@ -9,7 +9,7 @@ function buatVariasiNyaman(seq, min, max, fase = 0, desimal = 1) {
   const tengah = (min + max) / 2;
   const amplitudo = (max - min) / 2;
 
-  // Membuat variasi naik-turun secara halus.
+  // Membuat variasi.
   // Nilai tetap dikunci agar tidak keluar dari batas nyaman.
   const nilai = tengah + Math.sin((seq + fase) * 0.73) * amplitudo * 0.85;
 

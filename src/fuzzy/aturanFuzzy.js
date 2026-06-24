@@ -1,6 +1,3 @@
-// ======================================================
-// KONFIGURASI APLIKASI
-// ======================================================
 export const KONFIG_APP = {
   namaAplikasi: "Perpustakaan Udayana",
   namaAdmin: "Admin",

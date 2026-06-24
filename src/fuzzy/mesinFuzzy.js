@@ -50,11 +50,13 @@ function trimf(x, [a, b, c]) {
   return 0;
 }
 
+//Memilih trap atau trim
 function hitungMembership(x, config) {
   if (config.type === "trap") return trapmf(x, config.points);
   return trimf(x, config.points);
 }
 
+//Fuzzifikasi
 function fuzzifikasi(value, himpunan) {
   const hasil = {};
 
@@ -85,6 +87,7 @@ function outputMembership(x, keyOutput) {
   return hitungMembership(x, config);
 }
 
+//Inferensi
 function inferensiOutput(ruleMap, derajatInput) {
   const agregasi = {
     tidakNyaman: 0,
@@ -100,6 +103,7 @@ function inferensiOutput(ruleMap, derajatInput) {
   return agregasi;
 }
 
+//Defuzzifikasi
 function centroid(agregasi) {
   let pembilang = 0;
   let penyebut = 0;

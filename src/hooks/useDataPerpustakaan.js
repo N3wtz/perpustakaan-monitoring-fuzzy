@@ -152,9 +152,6 @@ function bentukStateKosong(bagian) {
 function bentukStateRooms(dataBagian = {}) {
   const hasil = {};
 
-  // Website hanya membentuk state untuk TATA_LETAK_BAGIAN.
-  // Karena TATA_LETAK_BAGIAN sekarang hanya lantai 2, data lantai 1 tetap ada di Firebase
-  // tetapi tidak ditampilkan dan tidak dihitung di website.
   TATA_LETAK_BAGIAN.forEach((bagian) => {
     const bagianData = dataBagian?.[bagian.id];
 
