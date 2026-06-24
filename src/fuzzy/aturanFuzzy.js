@@ -140,58 +140,58 @@ export const ATURAN_MAMDANI = {
   suhu: {
     dingin: {
       type: "trap",
-      points: [0, 0, 20, 22],
+      points: [0, 0, 22.1, 22.5],
       label: "Dingin",
     },
     sejuk: {
       type: "tri",
-      points: [20, 22, 23.5],
+      points: [22.1, 22.7, 23.5],
       label: "Sejuk",
     },
     nyaman: {
       type: "trap",
-      points: [22.5, 23, 26, 26.5],
+      points: [22.5, 23.5, 25.6, 26],
       label: "Nyaman",
     },
     hangat: {
       type: "tri",
-      points: [25.5, 27, 28.5],
+      points: [25.6, 26.3, 27.1],
       label: "Hangat",
     },
     panas: {
       type: "trap",
-      points: [27.5, 29, 40, 40],
+      points: [26.9, 27.3, 40, 40],
       label: "Panas",
     },
   },
 
   kelembapan: {
-    terlaluKering: {
+    kering: {
       type: "trap",
-      points: [0, 0, 35, 42],
-      label: "Terlalu Kering",
+      points: [0, 0, 55, 56],
+      label: "Kering",
     },
     nyaman: {
       type: "trap",
-      points: [38, 40, 60, 62],
+      points: [44, 50, 70, 88],
       label: "Nyaman",
     },
-    terlaluLembab: {
+    lembab: {
       type: "trap",
-      points: [58, 65, 100, 100],
-      label: "Terlalu Lembab",
+      points: [57, 75, 100, 100],
+      label: "Lembab",
     },
   },
 
   kebisingan: {
     nyaman: {
       type: "trap",
-      points: [0, 0, 40, 48],
+      points: [0, 0, 40, 50],
       label: "Nyaman",
     },
     kebisinganRendah: {
       type: "tri",
-      points: [42, 50, 58],
+      points: [39, 47, 54],
       label: "Kebisingan Rendah",
     },
     kebisinganTinggi: {
@@ -228,16 +228,16 @@ export const OUTPUT_KENYAMANAN = {
 // ======================================================
 export const RULE_PARAMETER = {
   suhu: {
-    dingin: "tidakNyaman",
+    dingin: "kurangNyaman",
     sejuk: "nyaman",
     nyaman: "nyaman",
     hangat: "kurangNyaman",
     panas: "tidakNyaman",
   },
   kelembapan: {
-    terlaluKering: "kurangNyaman",
+    kering: "kurangNyaman",
     nyaman: "nyaman",
-    terlaluLembab: "kurangNyaman",
+    lembab: "kurangNyaman",
   },
   kebisingan: {
     nyaman: "nyaman",
@@ -251,27 +251,87 @@ export const RULE_PARAMETER = {
 // ======================================================
 export const RULE_KESELURUHAN = [
   {
-    suhu: "nyaman",
-    kelembapan: "nyaman",
-    kebisingan: "nyaman",
-    output: "nyaman",
-  },
-  {
-    suhu: "sejuk",
-    kelembapan: "nyaman",
-    kebisingan: "nyaman",
-    output: "nyaman",
-  },
-  {
-    suhu: "hangat",
-    kelembapan: "nyaman",
+    suhu: "dingin",
+    kelembapan: "kering",
     kebisingan: "nyaman",
     output: "kurangNyaman",
   },
   {
     suhu: "dingin",
     kelembapan: "nyaman",
+    kebisingan: "kebisinganTinggi",
+    output: "tidakNyaman",
+  },
+  {
+    suhu: "dingin",
+    kelembapan: "nyaman",
     kebisingan: "nyaman",
+    output: "kurangNyaman",
+  },
+  {
+    suhu: "hangat",
+    kelembapan: "lembab",
+    kebisingan: "kebisinganRendah",
+    output: "kurangNyaman",
+  },
+  {
+    suhu: "hangat",
+    kelembapan: "lembab",
+    kebisingan: "kebisinganTinggi",
+    output: "tidakNyaman",
+  },
+  {
+    suhu: "hangat",
+    kelembapan: "lembab",
+    kebisingan: "nyaman",
+    output: "nyaman",
+  },
+  {
+    suhu: "hangat",
+    kelembapan: "nyaman",
+    kebisingan: "kebisinganRendah",
+    output: "kurangNyaman",
+  },
+  {
+    suhu: "hangat",
+    kelembapan: "nyaman",
+    kebisingan: "kebisinganTinggi",
+    output: "tidakNyaman",
+  },
+  {
+    suhu: "hangat",
+    kelembapan: "nyaman",
+    kebisingan: "nyaman",
+    output: "kurangNyaman",
+  },
+  {
+    suhu: "nyaman",
+    kelembapan: "nyaman",
+    kebisingan: "kebisinganRendah",
+    output: "kurangNyaman",
+  },
+  {
+    suhu: "nyaman",
+    kelembapan: "nyaman",
+    kebisingan: "kebisinganTinggi",
+    output: "tidakNyaman",
+  },
+  {
+    suhu: "nyaman",
+    kelembapan: "nyaman",
+    kebisingan: "nyaman",
+    output: "nyaman",
+  },
+  {
+    suhu: "panas",
+    kelembapan: "lembab",
+    kebisingan: "nyaman",
+    output: "tidakNyaman",
+  },
+  {
+    suhu: "panas",
+    kelembapan: "nyaman",
+    kebisingan: "kebisinganRendah",
     output: "tidakNyaman",
   },
   {
@@ -281,52 +341,10 @@ export const RULE_KESELURUHAN = [
     output: "tidakNyaman",
   },
   {
-    suhu: "nyaman",
-    kelembapan: "terlaluKering",
-    kebisingan: "nyaman",
-    output: "kurangNyaman",
-  },
-  {
-    suhu: "nyaman",
-    kelembapan: "terlaluLembab",
-    kebisingan: "nyaman",
-    output: "kurangNyaman",
-  },
-  {
-    suhu: "nyaman",
-    kelembapan: "nyaman",
-    kebisingan: "kebisinganRendah",
-    output: "kurangNyaman",
-  },
-  {
-    suhu: "nyaman",
-    kelembapan: "nyaman",
-    kebisingan: "kebisinganTinggi",
-    output: "tidakNyaman",
-  },
-  {
     suhu: "sejuk",
-    kelembapan: "terlaluKering",
+    kelembapan: "lembab",
     kebisingan: "nyaman",
-    output: "kurangNyaman",
-  },
-  {
-    suhu: "sejuk",
-    kelembapan: "terlaluLembab",
-    kebisingan: "nyaman",
-    output: "kurangNyaman",
-  },
-  {
-    suhu: "hangat",
-    kelembapan: "terlaluKering",
-    kebisingan: "nyaman",
-    output: "kurangNyaman",
-  },
-  {
-    suhu: "hangat",
-    kelembapan: "terlaluLembab",
-    kebisingan: "nyaman",
-    output: "kurangNyaman",
+    output: "nyaman",
   },
   {
     suhu: "sejuk",
@@ -335,27 +353,9 @@ export const RULE_KESELURUHAN = [
     output: "kurangNyaman",
   },
   {
-    suhu: "hangat",
-    kelembapan: "nyaman",
-    kebisingan: "kebisinganRendah",
-    output: "kurangNyaman",
-  },
-  {
     suhu: "sejuk",
     kelembapan: "nyaman",
-    kebisingan: "kebisinganTinggi",
-    output: "tidakNyaman",
-  },
-  {
-    suhu: "hangat",
-    kelembapan: "nyaman",
-    kebisingan: "kebisinganTinggi",
-    output: "tidakNyaman",
-  },
-  {
-    suhu: "panas",
-    kelembapan: "terlaluLembab",
-    kebisingan: "kebisinganTinggi",
-    output: "tidakNyaman",
+    kebisingan: "nyaman",
+    output: "nyaman",
   },
 ];

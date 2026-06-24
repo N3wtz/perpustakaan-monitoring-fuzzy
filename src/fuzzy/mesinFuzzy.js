@@ -191,16 +191,16 @@ function prosesFuzzyKeseluruhan(fuzzyParameter) {
   if (!adaRuleAktif) {
     agregasi.tidakNyaman = Math.max(
       agregasi.tidakNyaman,
-      fuzzyParameter.suhu.derajat.dingin || 0,
       fuzzyParameter.suhu.derajat.panas || 0,
       fuzzyParameter.kebisingan.derajat.kebisinganTinggi || 0,
     );
 
     agregasi.kurangNyaman = Math.max(
       agregasi.kurangNyaman,
+      fuzzyParameter.suhu.derajat.dingin || 0,
       fuzzyParameter.suhu.derajat.hangat || 0,
-      fuzzyParameter.kelembapan.derajat.terlaluKering || 0,
-      fuzzyParameter.kelembapan.derajat.terlaluLembab || 0,
+      fuzzyParameter.kelembapan.derajat.kering || 0,
+      fuzzyParameter.kelembapan.derajat.lembab || 0,
       fuzzyParameter.kebisingan.derajat.kebisinganRendah || 0,
     );
 
