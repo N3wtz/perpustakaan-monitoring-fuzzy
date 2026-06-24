@@ -93,6 +93,12 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
 
             await set(ref(db, `perpustakaan/${bagian.id}/latest`), data);
 
+            await push(ref(db, `perpustakaan/${bagian.id}/history`), {
+              ...data,
+              jenis_data: "realtime_5_detik",
+              jumlah_sample: 1,
+            });
+
             await set(ref(db, `perpustakaan/${bagian.id}/node_info`), {
               bagian_id: bagian.id,
               ruang_id: bagian.id,
@@ -150,16 +156,9 @@ export function useDummyRealtimeFirebase({ aktif = true } = {}) {
       );
     }, KONFIG_APP.dummyLatestIntervalMs);
 
-    const historyTimer = setInterval(() => {
-      kirimHistoryDummy().catch((error) =>
-        console.error("Gagal kirim history dummy:", error),
-      );
-    }, KONFIG_APP.dummyHistoryIntervalMs);
-
     return () => {
       sudahStop = true;
       clearInterval(latestTimer);
-      clearInterval(historyTimer);
     };
   }, [aktif]);
 }

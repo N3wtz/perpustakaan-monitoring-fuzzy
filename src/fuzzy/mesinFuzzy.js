@@ -173,49 +173,37 @@ function prosesFuzzyKeseluruhan(fuzzyParameter) {
     nyaman: 0,
   };
 
-  // 1. Jalankan RULE_KESELURUHAN sebagai aturan utama
   RULE_KESELURUHAN.forEach((rule) => {
     const alpha = Math.min(
       fuzzyParameter.suhu.derajat[rule.suhu] || 0,
       fuzzyParameter.kelembapan.derajat[rule.kelembapan] || 0,
       fuzzyParameter.kebisingan.derajat[rule.kebisingan] || 0,
-      fuzzyParameter.asap.derajat[rule.asap] || 0,
-      fuzzyParameter.co.derajat[rule.co] || 0,
     );
 
     agregasi[rule.output] = Math.max(agregasi[rule.output], alpha);
   });
 
-  // 2. Cek apakah ada rule yang aktif
   const adaRuleAktif =
     agregasi.tidakNyaman > 0 ||
     agregasi.kurangNyaman > 0 ||
     agregasi.nyaman > 0;
 
-  // 3. Fallback hanya dipakai kalau TIDAK ADA rule yang aktif sama sekali.
-  // Jadi fallback tidak akan menimpa hasil RULE_KESELURUHAN.
   if (!adaRuleAktif) {
-    // Kondisi bahaya/berat
     agregasi.tidakNyaman = Math.max(
       agregasi.tidakNyaman,
-      fuzzyParameter.asap.derajat.terdeteksiAsap || 0,
-      fuzzyParameter.co.derajat.coTinggi || 0,
-      fuzzyParameter.kebisingan.derajat.kebisinganTinggi || 0,
+      fuzzyParameter.suhu.derajat.dingin || 0,
       fuzzyParameter.suhu.derajat.panas || 0,
+      fuzzyParameter.kebisingan.derajat.kebisinganTinggi || 0,
     );
 
-    // Kondisi gangguan ringan/sedang
     agregasi.kurangNyaman = Math.max(
       agregasi.kurangNyaman,
-      fuzzyParameter.suhu.derajat.dingin || 0,
       fuzzyParameter.suhu.derajat.hangat || 0,
       fuzzyParameter.kelembapan.derajat.terlaluKering || 0,
       fuzzyParameter.kelembapan.derajat.terlaluLembab || 0,
       fuzzyParameter.kebisingan.derajat.kebisinganRendah || 0,
-      fuzzyParameter.co.derajat.coRendah || 0,
     );
 
-    // Kondisi nyaman
     agregasi.nyaman = Math.max(
       agregasi.nyaman,
       Math.min(
@@ -225,8 +213,6 @@ function prosesFuzzyKeseluruhan(fuzzyParameter) {
         ),
         fuzzyParameter.kelembapan.derajat.nyaman || 0,
         fuzzyParameter.kebisingan.derajat.nyaman || 0,
-        fuzzyParameter.asap.derajat.nyaman || 0,
-        fuzzyParameter.co.derajat.nyaman || 0,
       ),
     );
   }
@@ -258,16 +244,6 @@ function buatKartuParameter(data, hasil) {
       status: hasil.kebisingan.kenyamanan,
       detail: hasil.kebisingan.label,
     },
-    asap: {
-      tampil: `${Number(data.asap_metric || 0).toFixed(1)} ppm`,
-      status: hasil.asap.kenyamanan,
-      detail: hasil.asap.label,
-    },
-    kualitasUdara: {
-      tampil: `${Number(data.ppm_co || 0).toFixed(1)} ppm`,
-      status: hasil.co.kenyamanan,
-      detail: hasil.co.label,
-    },
   };
 }
 
@@ -287,16 +263,6 @@ export function hitungFuzzyRuang(data) {
       Number(data?.suara_db || 0),
       ATURAN_MAMDANI.kebisingan,
       RULE_PARAMETER.kebisingan,
-    ),
-    asap: prosesFuzzyParameter(
-      Number(data?.asap_metric ?? data?.asap_flag ?? 0),
-      ATURAN_MAMDANI.asap,
-      RULE_PARAMETER.asap,
-    ),
-    co: prosesFuzzyParameter(
-      Number(data?.ppm_co || 0),
-      ATURAN_MAMDANI.co,
-      RULE_PARAMETER.co,
     ),
   };
 

@@ -34,8 +34,6 @@ function ambilProfilBagian(bagian) {
     suhu: 23.4 + (lantai - 2) * 0.4 + (nomor % 4) * 0.3 + (hash % 5) * 0.05,
     kelembapan: 48 + (nomor % 5) * 1.3 + (lantai - 2) * 0.8,
     suara: 35 + (nomor % 6) * 1.6 + (lantai - 2) * 1.0,
-    asap: 1.4 + (nomor % 3) * 0.35,
-    co: 3.0 + (nomor % 4) * 0.32,
   };
 }
 
@@ -78,15 +76,6 @@ export function buatDataDummyRealtime(
     (hour >= 10 && hour <= 14 ? 2.2 : 0) +
     noise(1.5);
 
-  // Spike dibuat jarang agar dummy tetap realistis, bukan selalu bermasalah.
-  const asapSpike = Math.random() > 0.997 ? 9 + Math.random() * 8 : 0;
-  const coSpike = Math.random() > 0.997 ? 3 + Math.random() * 5 : 0;
-
-  const asapMetric = clamp(base.asap + asapSpike + noise(0.25), 0, 25);
-  const ppmCO = clamp(base.co + coSpike + noise(0.2), 0, 18);
-  const mq2Delta = Math.round(asapMetric * 10);
-  const mq7Adc = Math.round(1650 + ppmCO * 38 + noise(20));
-
   return {
     bagian_id: bagian.id,
     ruang_id: bagian.id,
@@ -97,20 +86,10 @@ export function buatDataDummyRealtime(
     kelembapan: Number(clamp(kelembapan, 30, 80).toFixed(1)),
     suara_db: Number(clamp(suara, 30, 75).toFixed(1)),
 
-    mq2_adc: 1200 + mq2Delta,
-    mq2_delta: mq2Delta,
-    asap_flag: asapMetric >= 10 ? 1 : 0,
-    asap_metric: Number(asapMetric.toFixed(1)),
-
-    mq7_adc: mq7Adc,
-    ppm_co: Number(ppmCO.toFixed(1)),
-
     timestamp: detikEpoch,
     waktu_text: formatWaktuText(date),
     wifi_rssi: -45 - ((bagian.nomor + bagian.lantai) % 18),
 
-    kalibrasi_mq2_baseline: 1200,
-    kalibrasi_mq7_r0: 1,
     kalibrasi_dht_temp_offset: 0,
     kalibrasi_dht_hum_offset: 0,
     status_node: "online",

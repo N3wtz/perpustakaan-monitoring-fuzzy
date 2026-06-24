@@ -35,19 +35,7 @@ function normalisasiLatest(
     suhu: angkaAman(data.suhu),
     kelembapan: angkaAman(data.kelembapan),
     suara_db: angkaAman(data.suara_db),
-    ppm_co: angkaAman(data.ppm_co),
 
-    asap_flag: angkaAman(data.asap_flag),
-    asap_metric:
-      data.asap_metric !== undefined
-        ? angkaAman(data.asap_metric)
-        : angkaAman(data.asap_flag) === 1
-          ? 10
-          : 0,
-
-    mq2_adc: angkaAman(data.mq2_adc),
-    mq2_delta: angkaAman(data.mq2_delta),
-    mq7_adc: angkaAman(data.mq7_adc),
     wifi_rssi: angkaAman(data.wifi_rssi),
 
     timestamp: angkaAman(data.timestamp),
@@ -76,19 +64,7 @@ function normalisasiHistory(
         suhu: angkaAman(item?.suhu),
         kelembapan: angkaAman(item?.kelembapan),
         suara_db: angkaAman(item?.suara_db),
-        ppm_co: angkaAman(item?.ppm_co),
 
-        asap_flag: angkaAman(item?.asap_flag),
-        asap_metric:
-          item?.asap_metric !== undefined
-            ? angkaAman(item.asap_metric)
-            : angkaAman(item?.asap_flag) === 1
-              ? 10
-              : 0,
-
-        mq2_adc: angkaAman(item?.mq2_adc),
-        mq2_delta: angkaAman(item?.mq2_delta),
-        mq7_adc: angkaAman(item?.mq7_adc),
         wifi_rssi: angkaAman(item?.wifi_rssi),
 
         timestamp: angkaAman(item?.timestamp),

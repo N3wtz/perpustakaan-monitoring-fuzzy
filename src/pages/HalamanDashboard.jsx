@@ -367,26 +367,6 @@ export default function HalamanDashboard({
       rentang: "< 55 dB",
       onClick: () => setPage?.("kebisingan"),
     },
-    {
-      judul: "Indeks Asap",
-      ikon: Cloud,
-      nilai: angkaAman(latest.asap_metric),
-      unit: "indeks",
-      labelKategori: labelInput(fuzzy?.asap),
-      outputKenyamanan: kenyamanan(fuzzy?.asap),
-      rentang: "< 10 indeks",
-      onClick: () => setPage?.("asap"),
-    },
-    {
-      judul: "Karbon Monoksida",
-      ikon: Wind,
-      nilai: angkaAman(latest.ppm_co),
-      unit: "ppm",
-      labelKategori: labelInput(fuzzy?.co),
-      outputKenyamanan: kenyamanan(fuzzy?.co),
-      rentang: "< 9 ppm",
-      onClick: () => setPage?.("kualitasUdara"),
-    },
   ];
 
   return (

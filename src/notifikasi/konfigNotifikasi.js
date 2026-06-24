@@ -41,20 +41,4 @@ export const DAFTAR_PARAMETER_ALERT = [
     ambilDetail: (fuzzy) => fuzzy?.kebisingan?.label || "-",
     ambilNilai: (latest) => latest?.suara_db || 0,
   },
-  {
-    key: "asap",
-    label: "Indeks Asap",
-    unit: "indeks",
-    ambilStatus: (fuzzy) => fuzzy?.asap?.kenyamanan || "Nyaman",
-    ambilDetail: (fuzzy) => fuzzy?.asap?.label || "-",
-    ambilNilai: (latest) => latest?.asap_metric || 0,
-  },
-  {
-    key: "co",
-    label: "Kualitas Udara (CO)",
-    unit: "ppm",
-    ambilStatus: (fuzzy) => fuzzy?.co?.kenyamanan || "Nyaman",
-    ambilDetail: (fuzzy) => fuzzy?.co?.label || "-",
-    ambilNilai: (latest) => latest?.ppm_co || 0,
-  },
 ];

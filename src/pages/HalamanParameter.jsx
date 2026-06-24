@@ -37,21 +37,11 @@ const KEY_FUZZY_PARAMETER = {
   suhu: "suhu",
   kelembapan: "kelembapan",
   kebisingan: "kebisingan",
-  asap: "asap",
-  kualitasUdara: "co",
 };
 
 function metaHalaman(page) {
   if (page === "kenyamananTotal") {
     return META_KENYAMANAN_TOTAL;
-  }
-
-  if (page === "asap") {
-    return {
-      ...(META_PARAMETER.asap || {}),
-      label: "Indeks Asap",
-      unit: "indeks",
-    };
   }
 
   return META_PARAMETER[page] || META_KENYAMANAN_TOTAL;
@@ -195,16 +185,6 @@ function buatBarisExport(riwayat, labelBagian, periode, filterTanggal) {
       "Kategori Kebisingan": fuzzy?.kebisingan?.label || "-",
       "Kenyamanan Kebisingan": fuzzy?.kebisingan?.kenyamanan || "-",
       "Skor Fuzzy Kebisingan": formatAngka(fuzzy?.kebisingan?.skor),
-
-      "Indeks Asap": formatAngka(item.asap_metric),
-      "Kategori Asap": fuzzy?.asap?.label || "-",
-      "Kenyamanan Asap": fuzzy?.asap?.kenyamanan || "-",
-      "Skor Fuzzy Asap": formatAngka(fuzzy?.asap?.skor),
-
-      "CO (ppm)": formatAngka(item.ppm_co),
-      "Kategori CO": fuzzy?.co?.label || "-",
-      "Kenyamanan CO": fuzzy?.co?.kenyamanan || "-",
-      "Skor Fuzzy CO": formatAngka(fuzzy?.co?.skor),
 
       "Kenyamanan Total": fuzzy?.kenyamananTotal || "-",
       "Skor Fuzzy Total": formatAngka(fuzzy?.skorTotal),

@@ -44,20 +44,6 @@ const PARAMETER_GABUNGAN = [
     warna: "#f59e0b",
   },
   {
-    key: "asap",
-    field: "asap_metric",
-    label: "Indeks Asap",
-    unit: "indeks",
-    warna: "#64748b",
-  },
-  {
-    key: "co",
-    field: "ppm_co",
-    label: "CO",
-    unit: "ppm",
-    warna: "#22c55e",
-  },
-  {
     key: "skorTotal",
     field: "skorTotal",
     label: "Kenyamanan Total",
@@ -231,8 +217,8 @@ export default function HalamanGrafikGabungan({
           Grafik Gabungan Parameter
         </h1>
         <p className="mt-2 text-sm text-slate-500">
-          Menampilkan suhu, kelembapan, kebisingan, indeks asap, karbon
-          monoksida, dan skor kenyamanan total dalam satu grafik.
+          Menampilkan suhu, kelembapan, kebisingan, dan skor kenyamanan total
+          dalam satu grafik.
         </p>
       </div>
 

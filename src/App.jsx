@@ -15,14 +15,7 @@ import { useMesinAlert } from "./hooks/useMesinAlert";
 
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 
-const PAGE_PARAMETER = [
-  "suhu",
-  "kelembapan",
-  "kebisingan",
-  "asap",
-  "kualitasUdara",
-  "kenyamananTotal",
-];
+const PAGE_PARAMETER = ["suhu", "kelembapan", "kebisingan", "kenyamananTotal"];
 
 function useKenyamananPerpustakaan(rooms) {
   return useMemo(() => {

@@ -47,17 +47,6 @@ export function kelasToneStatus(tone) {
   };
 }
 
-export function ambilAngkaAsap(record = {}) {
-  if (record.asap_ppm !== undefined) return angkaAman(record.asap_ppm);
-  if (record.asap_metric !== undefined) return angkaAman(record.asap_metric);
-
-  if (record.asap_flag !== undefined) {
-    return angkaAman(record.asap_flag) === 1 ? 10 : 0;
-  }
-
-  return 0;
-}
-
 function normalisasiQos(data = {}) {
   return {
     seq: angkaAman(data.seq),
@@ -71,9 +60,6 @@ export function normalisasiDataTerbaru(data = {}) {
     suhu: angkaAman(data.suhu),
     kelembapan: angkaAman(data.kelembapan),
     suara_db: angkaAman(data.suara_db),
-    ppm_co: angkaAman(data.ppm_co),
-    asap_flag: angkaAman(data.asap_flag),
-    asap_metric: ambilAngkaAsap(data),
     timestamp: angkaAman(data.timestamp),
     waktu_text: data.waktu_text || "-",
     qos: normalisasiQos(data.qos || {}),
@@ -87,9 +73,6 @@ export function normalisasiRiwayat(objekRiwayat = {}) {
       suhu: angkaAman(item?.suhu),
       kelembapan: angkaAman(item?.kelembapan),
       suara_db: angkaAman(item?.suara_db),
-      ppm_co: angkaAman(item?.ppm_co),
-      asap_flag: angkaAman(item?.asap_flag),
-      asap_metric: ambilAngkaAsap(item),
       timestamp: angkaAman(item?.timestamp),
       waktu_text: item?.waktu_text || "-",
       qos: normalisasiQos(item?.qos || {}),

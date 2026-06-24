@@ -1,14 +1,12 @@
 import {
   Activity,
   Bell,
-  Cloud,
   Droplets,
   LayoutDashboard,
   LogOut,
   Thermometer,
   Users,
   Volume2,
-  Wind,
 } from "lucide-react";
 
 import { KONFIG_APP } from "../fuzzy/aturanFuzzy";
@@ -19,8 +17,6 @@ const MENU_UTAMA = [
   { key: "suhu", label: "Suhu", ikon: Thermometer },
   { key: "kelembapan", label: "Kelembapan", ikon: Droplets },
   { key: "kebisingan", label: "Kebisingan", ikon: Volume2 },
-  { key: "asap", label: "Indeks Asap", ikon: Cloud },
-  { key: "kualitasUdara", label: "Kualitas Udara", ikon: Wind },
   { key: "kenyamananTotal", label: "Kenyamanan Total", ikon: Users },
   { key: "grafikGabungan", label: "Grafik Gabungan", ikon: Activity },
   { key: "qos", label: "QoS", ikon: Activity },
